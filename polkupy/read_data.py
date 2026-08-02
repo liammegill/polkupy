@@ -2,9 +2,46 @@
 Read data from file.
 """
 
+from pathlib import Path
+
 import gpxpy
 import pandas as pd
 import numpy as np
+
+
+def load_rides(data_dir: str = "data", bikes: list[str] = None,
+                extensions: list[str] = None) -> pd.DataFrame:
+    """Load every GPX ride from a directory of per-bike subfolders.
+
+    Args:
+        data_dir (str): Directory containing one subfolder per bike, each
+            holding that bike's GPX files (e.g. "data/katie/*.gpx").
+        bikes (list[str], optional): Subset of bike subfolder names to
+            load. Defaults to all subfolders found in `data_dir`.
+        extensions (list[str], optional): Extensions of the GPX files to
+            read, passed through to `load_gpx`.
+
+    Returns:
+        pd.DataFrame: All rides concatenated, with added 'ride_id' (unique
+            per GPX file) and 'bike' columns.
+    """
+    data_path = Path(data_dir)
+    bike_dirs = (
+        [data_path / bike for bike in bikes] if bikes
+        else sorted(p for p in data_path.iterdir() if p.is_dir())
+    )
+
+    rides = []
+    for bike_dir in bike_dirs:
+        for gpx_path in sorted(bike_dir.glob("*.gpx")):
+            ride = load_gpx(str(gpx_path), extensions=extensions)
+            if ride.empty:
+                continue
+            ride["ride_id"] = f"{bike_dir.name}/{gpx_path.stem}"
+            ride["bike"] = bike_dir.name
+            rides.append(ride)
+
+    return pd.concat(rides, ignore_index=True)
 
 
 def load_gpx(filepath: str, extensions: list[str] = None) -> pd.DataFrame:
