@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polkupy"
+version = "0.0.1"
+description = "A python package to analyse and visualise personal cycling activities"
+readme = "README.md"
+requires-python = ">3.11"  # needs to be checked
+license = { file = "LICENSE" }
+authors = [{ name = "Liam Megill", email = "liam@megill.eu" }]
+keywords = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "gpxpy",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "Pillow",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "mypy",
+    "pandas-stubs",
+    "prospector",
+    "pylint",
+    "pyroma",
+    "pytest",
+    "readme_renderer[md]",
+    "twine",
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["polkupy", "polkupy.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
