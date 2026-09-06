@@ -22,10 +22,9 @@ src/polkupy/
 
 ## Installation
 
-Install with `uv` using:
+Install with `pixi` using:
 
 ```bash
-uv venv --python 3.13
-source .venv/bin/activate
-uv pip install -e .
+pixi install --all
+pixi shell -e dev
 ```

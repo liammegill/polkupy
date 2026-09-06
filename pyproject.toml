@@ -7,7 +7,7 @@ name = "polkupy"
 version = "0.0.1"
 description = "A python package to analyse and visualise personal cycling activities"
 readme = "README.md"
-requires-python = ">3.11"  # needs to be checked
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Liam Megill", email = "liam@megill.eu" }]
 keywords = []
@@ -52,3 +52,32 @@ testpaths = ["tests"]
 [tool.pyright]
 # matplotlib's stubs are incomplete for several plotting methods
 reportUnknownMemberType = false
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.dependencies]
+python = "3.13.*"
+
+[tool.pixi.pypi-dependencies]
+polkupy = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.pypi-dependencies]
+polkupy = { path = ".", editable = true, extras = ["dev"] }
+
+[tool.pixi.feature.dev.tasks]
+test = "pytest"
+typecheck = "mypy src"
+lint = "pylint src/polkupy"
+
+[tool.pixi.feature.nb.pypi-dependencies]
+polkupy = { path = ".", editable = true, extras = ["nb"] }
+
+[tool.pixi.feature.nb.tasks]
+lab = "jupyter lab"
+
+[tool.pixi.environments]
+default = { features = [], solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+nb = { features = ["nb"], solve-group = "default" }
