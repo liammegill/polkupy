@@ -117,8 +117,8 @@ class Ride:
 
         Returns:
             Trips: If ``other`` is ``0``, a :class:`Trips` wrapping just this
-                ride. Otherwise, a new :class:`Trips` collection holding every
-                point from both ``self`` and ``other``.
+            ride. Otherwise, a new :class:`Trips` collection holding every
+            point from both ``self`` and ``other``.
         """
         # imported here to prevent recursion
         from .trips import Trips  # pylint: disable=import-outside-toplevel
@@ -381,7 +381,7 @@ class Ride:
 
         Returns:
             Ride: A :class:`Ride` with ``time`` converted to ``tz``, and
-                ``ride_start_s`` and ``virtual_s`` columns added.
+            ``ride_start_s`` and ``virtual_s`` columns added.
         """
         return Ride(add_time_of_day(self.data, tz=tz))
 
@@ -392,7 +392,7 @@ class Ride:
 
         Returns:
             Ride: A :class:`Ride` with ``dist_m`` column added. The first
-                point has no previous point, so it is ``NaN``.
+            point has no previous point, so it is ``NaN``.
         """
         return Ride(calc_distance(self.data))
 
@@ -404,7 +404,7 @@ class Ride:
 
         Returns:
             Ride: A :class:`Ride` with ``dist_m`` and ``speed_kmh`` columns
-                added. The first point has no previous point, so both are
-                ``NaN``.
+            added. The first point has no previous point, so both are
+            ``NaN``.
         """
         return Ride(calc_speed(self.data))

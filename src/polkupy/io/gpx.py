@@ -36,8 +36,8 @@ def load_gpx(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
 
     Returns:
         pandas.DataFrame: A DataFrame containing the GPX data with columns for
-            time, latitude, longitude, and optionally elevation and other
-            specified extensions.
+        time, latitude, longitude, and optionally elevation and other specified
+        extensions.
 
     Raises:
         ValueError: If the file has no track points, a point has no

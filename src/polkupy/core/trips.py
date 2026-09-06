@@ -83,7 +83,7 @@ class Trips:
                 ``ride1 + ride2``.
 
         Returns:
-            :class:`Trips`: A new collection holding every ride.
+            Trips: A new collection holding every ride.
         """
         return cls(pd.concat([r.data for r in rides], ignore_index=True))
 
@@ -155,7 +155,7 @@ class Trips:
 
         Returns:
             Trips: Rides that have at least one point inside the box, kept
-                in full.
+            in full.
         """
         return Trips(
             filter_rides_in_bbox(self.data, lat_min, lat_max, lon_min, lon_max)

@@ -27,8 +27,8 @@ def haversine(
 
     Returns:
         numpy.typing.NDArray[numpy.float64]: Distance between the two
-            points, in metres. Matches the shape of whichever argument(s)
-            were array-like.
+        points, in metres. Matches the shape of whichever argument(s)
+        were array-like.
     """
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
@@ -50,9 +50,9 @@ def calc_speed(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
         pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
-            distance from the previous point, in metres) and ``speed_kmh``
-            (that distance divided by elapsed time, in km/h) columns added.
-            The first row has no previous point, so both are ``NaN``.
+        distance from the previous point, in metres) and ``speed_kmh``
+        (that distance divided by elapsed time, in km/h) columns added.
+        The first row has no previous point, so both are ``NaN``.
     """
     df = df.copy()
     if "dist_m" not in df.columns:
