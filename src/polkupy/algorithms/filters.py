@@ -14,7 +14,7 @@ def filter_rides_in_bbox(
 
     Args:
         df (pandas.DataFrame): Points with ``ride_id``, ``lat``, ``lon``
-            columns, e.g. :attr:`Rides.data <polkupy.core.rides.Rides.data>`.
+            columns, e.g. :attr:`Trips.data <polkupy.core.trips.Trips.data>`.
         lat_min (float): minimum latitude of the box, in degrees.
         lat_max (float): maximum latitude of the box, in degrees.
         lon_min (float): minimum longitude of the box, in degrees.

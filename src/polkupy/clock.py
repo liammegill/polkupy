@@ -16,7 +16,7 @@ def add_time_of_day(df: pd.DataFrame, tz: str = "Europe/Berlin") -> pd.DataFrame
 
     Args:
         df (pandas.DataFrame): Points with ``ride_id``, ``time`` columns,
-            e.g. :attr:`Rides.data <polkupy.core.rides.Rides.data>`.
+            e.g. :attr:`Trips.data <polkupy.core.trips.Trips.data>`.
         tz (str): IANA timezone name used to resolve local time of day.
 
     Returns:

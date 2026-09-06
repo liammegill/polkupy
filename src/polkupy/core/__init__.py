@@ -1,8 +1,8 @@
 """
-Core Ride/Rides classes: chainable wrappers around ride DataFrames.
+Core Ride/Trips classes: chainable wrappers around ride DataFrames.
 """
 
 from polkupy.core.ride import Ride
-from polkupy.core.rides import Rides
+from polkupy.core.trips import Trips
 
-__all__ = ["Ride", "Rides"]
+__all__ = ["Ride", "Trips"]

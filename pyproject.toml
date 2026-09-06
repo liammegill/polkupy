@@ -48,3 +48,7 @@ include = ["polkupy", "polkupy.*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.pyright]
+# matplotlib's stubs are incomplete for several plotting methods
+reportUnknownMemberType = false

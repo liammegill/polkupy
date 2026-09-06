@@ -4,14 +4,14 @@ Python package to analyse and visualise personal cycling activities.
 
 ## Structure
 
-`Ride`/`Rides` wrap the underlying pandas DataFrame(s) in a chainable API.
+`Ride`/`Trips` wrap the underlying pandas DataFrame(s) in a chainable API.
 
 ```text
 src/polkupy/
-├── __init__.py       # public API: Ride, Rides
+├── __init__.py       # public API: Ride, Trips
 ├── core/
 │   ├── ride.py       # Ride: one track
-│   └── rides.py      # Rides: a collection of rides
+│   └── trips.py      # Trips: a collection of rides
 ├── io/
 │   └── gpx.py
 ├── algorithms/

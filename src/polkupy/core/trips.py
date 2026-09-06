@@ -1,5 +1,5 @@
 """
-Provides the :class:`Rides` class: a collection of rides, backed by one
+Provides the :class:`Trips` class: a collection of rides, backed by one
 concatenated :class:`pandas.DataFrame` grouped by ``ride_id``.
 """
 
@@ -16,19 +16,19 @@ from ..io.gpx import load_gpx_dir
 from .ride import Ride
 
 
-class Rides:
+class Trips:
     """A collection of rides, backed by one :class:`pandas.DataFrame`
     grouped by ``ride_id``.
 
     Iterating yields :class:`Ride` objects; methods that filter or
-    transform the collection return a new :class:`Rides` so they can be
+    transform the collection return a new :class:`Trips` so they can be
     chained.
     """
 
     REQUIRED_COLUMNS = Ride.REQUIRED_COLUMNS | {"ride_id"}
 
     def __init__(self, data: pd.DataFrame):
-        """Wrap ``data`` as a :class:`Rides` collection.
+        """Wrap ``data`` as a :class:`Trips` collection.
 
         Args:
             data (pandas.DataFrame): Points for one or more rides. Must
@@ -42,7 +42,7 @@ class Rides:
         missing = self.REQUIRED_COLUMNS - set(data.columns)
         if missing:
             raise ValueError(
-                f"Rides data is missing required column(s): {', '.join(sorted(missing))}"
+                f"Trips data is missing required column(s): {', '.join(sorted(missing))}"
             )
         self.data = data
 
@@ -54,9 +54,9 @@ class Rides:
         data_dir: str = "data",
         bikes: list[str] | None = None,
         extensions: list[str] | None = None,
-    ) -> "Rides":
+    ) -> "Trips":
         """Load every GPX ride from a directory of per-bike subfolders as a
-        :class:`Rides` collection. This will need to be updated to become more
+        :class:`Trips` collection. This will need to be updated to become more
         flexible in the future.
 
         Args:
@@ -68,22 +68,22 @@ class Rides:
                 :func:`~polkupy.io.gpx.load_gpx_dir`.
 
         Returns:
-            Rides: The rides loaded from ``data_dir``.
+            Trips: The rides loaded from ``data_dir``.
         """
         return cls(load_gpx_dir(data_dir, bikes=bikes, extensions=extensions))
 
     @classmethod
-    def from_rides(cls, rides: Iterable[Ride | "Rides"]) -> "Rides":
-        """Concatenate several :class:`Ride`/:class:`Rides` into one
-        :class:`Rides` collection.
+    def from_rides(cls, rides: "Iterable[Ride | Trips]") -> "Trips":
+        """Concatenate several :class:`Ride`/:class:`Trips` into one
+        :class:`Trips` collection.
 
         Args:
-            rides (Iterable[Ride | Rides]): :class:`Ride`s and/or
-                :class:`Rides` collections to concatenate, e.g. from
+            rides (Iterable[Ride | Trips]): :class:`Ride`s and/or
+                :class:`Trips` collections to concatenate, e.g. from
                 ``ride1 + ride2``.
 
         Returns:
-            :class:`Rides`: A new collection holding every ride.
+            :class:`Trips`: A new collection holding every ride.
         """
         return cls(pd.concat([r.data for r in rides], ignore_index=True))
 
@@ -124,11 +124,11 @@ class Rides:
         return Ride(subset, ride_id=ride_id)
 
     def __repr__(self) -> str:
-        return f"Rides({len(self)} rides, {len(self.data)} points)"
+        return f"Trips({len(self)} rides, {len(self.data)} points)"
 
-    # -- filtering (return a new Rides) ---------------------------------------
+    # -- filtering (return a new Trips) ---------------------------------------
 
-    def filter(self, predicate: Callable[[Ride], bool]) -> "Rides":
+    def filter(self, predicate: Callable[[Ride], bool]) -> "Trips":
         """Keep only rides for which `predicate(ride)` is True.
 
         Args:
@@ -136,14 +136,14 @@ class Rides:
                 :meth:`__iter__`).
 
         Returns:
-            Rides: A new collection holding only the matching rides.
+            Trips: A new collection holding only the matching rides.
         """
         keep_ids = [ride.ride_id for ride in self if predicate(ride)]
-        return Rides(self.data[self.data["ride_id"].isin(keep_ids)])
+        return Trips(self.data[self.data["ride_id"].isin(keep_ids)])
 
     def in_bbox(
         self, lat_min: float, lat_max: float, lon_min: float, lon_max: float
-    ) -> "Rides":
+    ) -> "Trips":
         """Keep rides that pass through a geographic bounding box. See
         :func:`~polkupy.algorithms.filters.filter_rides_in_bbox`.
 
@@ -154,10 +154,10 @@ class Rides:
             lon_max (float): maximum longitude of the box, in degrees.
 
         Returns:
-            Rides: Rides that have at least one point inside the box, kept
-            in full.
+            Trips: Rides that have at least one point inside the box, kept
+                in full.
         """
-        return Rides(
+        return Trips(
             filter_rides_in_bbox(self.data, lat_min, lat_max, lon_min, lon_max)
         )
 
@@ -166,7 +166,7 @@ class Rides:
         start: tuple[float, float],
         end: tuple[float, float],
         radius_km: float = 0.5,
-    ) -> "Rides":
+    ) -> "Trips":
         """Keep rides that start near ``start`` (lat, lon) and end near ``end``.
         Useful e.g. for locating groups of similar rides, e.g. a commutes. See
         :meth:`Ride.starts_near`/:meth:`Ride.ends_near` for how "near" is
@@ -180,16 +180,16 @@ class Rides:
             radius_km (float): how close counts as "near", in km.
 
         Returns:
-            Rides: Rides that both start near ``start`` and end near ``end``.
+            Trips: Rides that both start near ``start`` and end near ``end``.
         """
         return self.filter(
             lambda ride: ride.starts_near(*start, radius_km)
             and ride.ends_near(*end, radius_km)
         )
 
-    # -- transforms (return a new Rides) --------------------------------------
+    # -- transforms (return a new Trips) --------------------------------------
 
-    def localised(self, tz: str = "Europe/Berlin") -> "Rides":
+    def localised(self, tz: str = "Europe/Berlin") -> "Trips":
         """Align every ride to a shared 24h clock, ignoring the calendar
         date.
 
@@ -199,7 +199,7 @@ class Rides:
             tz (str): IANA timezone name used to resolve local time of day.
 
         Returns:
-            Rides: A new collection with ``time`` converted to ``tz``, and
+            Trips: A new collection with ``time`` converted to ``tz``, and
             ``ride_start_s``/``virtual_s`` columns added.
         """
-        return Rides(add_time_of_day(self.data, tz=tz))
+        return Trips(add_time_of_day(self.data, tz=tz))

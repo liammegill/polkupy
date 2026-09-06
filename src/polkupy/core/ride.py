@@ -20,7 +20,7 @@ from ..geo import calc_speed, haversine
 from ..io.gpx import load_gpx
 
 if TYPE_CHECKING:
-    from .rides import Rides
+    from .trips import Trips
 
 
 def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
@@ -36,7 +36,9 @@ def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
         first row has no previous point, so it is ``NaN``.
     """
     df = df.copy()
-    df["dist_m"] = haversine(df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"])
+    df["dist_m"] = haversine(
+        df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
+    )
     return df
 
 
@@ -105,37 +107,37 @@ class Ride:
 
     # -- special methods ------------------------------------------------------
 
-    def __add__(self, other: Literal[0] | Ride | "Rides") -> "Rides":
+    def __add__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
         """Concatenate this ride with another ride or collection. Accepts ``0``
-        as well as :class:`Ride`/:class:`Rides` so that :func:`sum` works.
+        as well as :class:`Ride`/:class:`Trips` so that :func:`sum` works.
 
         Args:
-            other (Literal[0] | Ride | Rides): Another ride or collection to
+            other (Literal[0] | Ride | Trips): Another ride or collection to
                 concatenate onto this one, or ``0``.
 
         Returns:
-            Rides: If `other` is ``0``, a :class:`Rides` wrapping just this
-            ride. Otherwise, a new :class:`Rides` collection holding every
-            point from both `self` and `other`.
+            Trips: If ``other`` is ``0``, a :class:`Trips` wrapping just this
+                ride. Otherwise, a new :class:`Trips` collection holding every
+                point from both ``self`` and ``other``.
         """
         # imported here to prevent recursion
-        from .rides import Rides  # pylint: disable=import-outside-toplevel
+        from .trips import Trips  # pylint: disable=import-outside-toplevel
 
-        # convert Ride -> Rides if there is nothing to add to
+        # convert Ride -> Trips if there is nothing to add to
         if other == 0:
-            return Rides(self.data)
+            return Trips(self.data)
 
-        return Rides.from_rides([self, other])
+        return Trips.from_rides([self, other])
 
-    def __radd__(self, other: Literal[0] | Ride | "Rides") -> "Rides":
+    def __radd__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
         """Reflected concatenation.
 
         Args:
-            other (Literal[0] | Ride | Rides): Another ride or collection to
+            other (Literal[0] | Ride | Trips): Another ride or collection to
                 concatenate onto this one, or ``0``.
 
         Returns:
-            Rides: See :meth:`__add__`.
+            Trips: See :meth:`__add__`.
         """
         return self + other
 
@@ -188,7 +190,7 @@ class Ride:
     def _repr_html_(self) -> str:
         """Render ride metadata plus a small map, so a :class:`Ride` displays
         as a summary card just by being the last line of a Jupyter cell."""
-        items = []
+        items: list[str] = []
         if self.ride_id is not None:
             items.append(f"<b>ride ID</b>: {self.ride_id}")
         if self.bike_id is not None:
