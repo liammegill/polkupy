@@ -189,7 +189,7 @@ class Rides:
 
     # -- transforms (return a new Rides) --------------------------------------
 
-    def localized(self, tz: str = "Europe/Berlin") -> "Rides":
+    def localised(self, tz: str = "Europe/Berlin") -> "Rides":
         """Align every ride to a shared 24h clock, ignoring the calendar
         date.
 

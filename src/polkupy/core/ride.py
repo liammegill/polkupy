@@ -5,17 +5,39 @@ around a :class:`pandas.DataFrame` of points.
 
 from __future__ import annotations
 
+import base64
+from io import BytesIO
 from pathlib import Path
 from typing import Literal, TYPE_CHECKING
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 # import polkupy functions
-from ..geo import haversine
+from ..clock import add_time_of_day
+from ..geo import calc_speed, haversine
 from ..io.gpx import load_gpx
 
 if TYPE_CHECKING:
     from .rides import Rides
+
+
+def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute per-point distance from consecutive GPS points.
+
+    Args:
+        df (pandas.DataFrame): Points with ``lat``, ``lon`` columns, e.g.
+            :attr:`Ride.data`.
+
+    Returns:
+        pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
+        distance from the previous point, in metres) column added. The
+        first row has no previous point, so it is ``NaN``.
+    """
+    df = df.copy()
+    df["dist_m"] = haversine(df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"])
+    return df
 
 
 class Ride:
@@ -125,6 +147,66 @@ class Ride:
         """
         return len(self.data)
 
+    # -- jupyter viewing ------------------------------------------------------
+
+    def _repr_png_(self) -> bytes:
+        """Render the route as a small map, as PNG bytes. The start and end
+        points are marked with a green "play" triangle and a red "stop"
+        square respectively."""
+        fig, ax = plt.subplots(figsize=(3, 3))
+        ax.set_aspect(1 / np.cos(np.radians(self.data["lat"].mean())))
+        ax.axis("off")
+        ax.plot(self.data["lon"], self.data["lat"], lw=0.9, color="#9CA986", zorder=1)
+        start, end = self.data.iloc[0], self.data.iloc[-1]
+        ax.plot(
+            start["lon"],
+            start["lat"],
+            marker=">",
+            markersize=7,
+            linestyle="none",
+            color="#2E7D32",
+            markeredgecolor="white",
+            markeredgewidth=0.6,
+            zorder=3,
+        )
+        ax.plot(
+            end["lon"],
+            end["lat"],
+            marker="s",
+            markersize=6,
+            linestyle="none",
+            color="#C62828",
+            markeredgecolor="white",
+            markeredgewidth=0.6,
+            zorder=3,
+        )
+        buf = BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight", dpi=110)
+        plt.close(fig)
+        return buf.getvalue()
+
+    def _repr_html_(self) -> str:
+        """Render ride metadata plus a small map, so a :class:`Ride` displays
+        as a summary card just by being the last line of a Jupyter cell."""
+        items = []
+        if self.ride_id is not None:
+            items.append(f"<b>ride ID</b>: {self.ride_id}")
+        if self.bike_id is not None:
+            items.append(f"<b>bike ID</b>: {self.bike_id}")
+        items += [
+            f"<b>start</b>: {self.start_time}",
+            f"<b>end</b>: {self.end_time}",
+            f"<b>duration</b>: {self.duration}",
+            f"<b>sampling rate</b>: {self.sampling_rate.total_seconds():.1f} s",
+        ]
+        bullets = "".join(f"<li>{item}</li>" for item in items)
+        img_b64 = base64.b64encode(self._repr_png_()).decode("ascii")
+        return (
+            "<div><h3>Ride</h3>"
+            f"<ul>{bullets}</ul>"
+            f'<img src="data:image/png;base64,{img_b64}" style="margin-top: 0.5em;"/></div>'
+        )
+
     # -- data entry -----------------------------------------------------------
 
     @classmethod
@@ -144,7 +226,7 @@ class Ride:
             filepath (str): Path to the GPX file.
             bike_id (str, optional): Identifier for the bicycle used.
             ride_id (str, optional): Identifier for the ride. Defaults to
-                ``f"{bike_id}/{stem}"`` if `bike_id` is given, otherwise
+                ``f"{bike_id}/{stem}"`` if ``bike_id`` is given, otherwise
                 just the filename stem.
             extensions (list[str], optional): Extra GPX extension fields to
                 read (e.g. heart rate), passed through to
@@ -202,6 +284,24 @@ class Ride:
         time spent stopped (e.g. at traffic lights).
         """
         return self.end_time - self.start_time
+
+    @property
+    def sampling_rate(self) -> pd.Timedelta:
+        """Typical interval between consecutive points, as the median of
+        per-point time differences, as a :class:`pandas.Timedelta`.
+        """
+        return pd.Timedelta(self.data["time"].diff().median())
+
+    @property
+    def distance_km(self) -> float:
+        """Total distance covered, in km, as the cumulative great-circle
+        distance between consecutive points.
+        """
+        lat, lon = self.data["lat"].to_numpy(), self.data["lon"].to_numpy()
+        if len(lat) < 2:
+            return 0.0
+        dist_m = haversine(lon[:-1], lat[:-1], lon[1:], lat[1:])
+        return float(np.nansum(dist_m)) / 1e3
 
     # -- geography ------------------------------------------------------------
 
@@ -266,3 +366,43 @@ class Ride:
         """
         distance_m = haversine(points["lon"], points["lat"], lon, lat)
         return bool((distance_m / 1000 <= radius_km).any())
+
+    # -- transforms (return a new Ride) ---------------------------------------
+
+    def localised(self, tz: str = "Europe/Berlin") -> "Ride":
+        """Align the ride to a 24h clock, ignoring the calendar date.
+
+        See :func:`~polkupy.clock.add_time_of_day`.
+
+        Args:
+            tz (str): IANA timezone name used to resolve local time of day.
+
+        Returns:
+            Ride: A :class:`Ride` with ``time`` converted to ``tz``, and
+                ``ride_start_s`` and ``virtual_s`` columns added.
+        """
+        return Ride(add_time_of_day(self.data, tz=tz))
+
+    def with_distance(self) -> "Ride":
+        """Add ``dist_m`` (metres from the previous point) column.
+
+        See :func:`calc_distance`.
+
+        Returns:
+            Ride: A :class:`Ride` with ``dist_m`` column added. The first
+                point has no previous point, so it is ``NaN``.
+        """
+        return Ride(calc_distance(self.data))
+
+    def with_speed(self) -> "Ride":
+        """Add the ``dist_m`` (if not already present; see also
+        :func:`calc_distance`) and ``speed_kmh`` columns.
+
+        See :func:`~polkupy.geo.calc_speed`.
+
+        Returns:
+            Ride: A :class:`Ride` with ``dist_m`` and ``speed_kmh`` columns
+                added. The first point has no previous point, so both are
+                ``NaN``.
+        """
+        return Ride(calc_speed(self.data))

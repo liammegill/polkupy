@@ -35,6 +35,9 @@ dev = [
     "readme_renderer[md]",
     "twine",
 ]
+nb = [
+    "notebook"
+]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
