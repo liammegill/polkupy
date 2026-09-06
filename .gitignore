@@ -30,9 +30,14 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
+# Sphinx docs
+docs/_build/
+
 # Editors
 .vscode/
 .idea/
 
 # macOS
 .DS_Store
+# pixi environments
+.pixi/*
