@@ -16,30 +16,11 @@ import pandas as pd
 
 # import polkupy functions
 from ..clock import add_time_of_day
-from ..geo import calc_speed, haversine
+from ..geo import calc_distance, calc_speed, haversine
 from ..io.gpx import load_gpx
 
 if TYPE_CHECKING:
     from .trips import Trips
-
-
-def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute per-point distance from consecutive GPS points.
-
-    Args:
-        df (pandas.DataFrame): Points with ``lat``, ``lon`` columns, e.g.
-            :attr:`Ride.data`.
-
-    Returns:
-        pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
-        distance from the previous point, in metres) column added. The
-        first row has no previous point, so it is ``NaN``.
-    """
-    df = df.copy()
-    df["dist_m"] = haversine(
-        df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
-    )
-    return df
 
 
 class Ride:
@@ -371,6 +352,20 @@ class Ride:
 
     # -- transforms (return a new Ride) ---------------------------------------
 
+    def _with_data(self, data: pd.DataFrame) -> "Ride":
+        """Build a new :class:`Ride` from ``data``, preserving this ride's
+        identity (:attr:`ride_id`/:attr:`bike_id`) regardless of whether
+        ``data`` happens to carry them as columns.
+
+        Args:
+            data (pandas.DataFrame): Replacement data, e.g. from one of the
+                ``polkupy.geo``/``polkupy.clock`` transform functions.
+
+        Returns:
+            Ride: A new :class:`Ride` wrapping ``data``.
+        """
+        return Ride(data, ride_id=self.ride_id, bike_id=self.bike_id)
+
     def localised(self, tz: str = "Europe/Berlin") -> "Ride":
         """Align the ride to a 24h clock, ignoring the calendar date.
 
@@ -383,22 +378,22 @@ class Ride:
             Ride: A :class:`Ride` with ``time`` converted to ``tz``, and
             ``ride_start_s`` and ``virtual_s`` columns added.
         """
-        return Ride(add_time_of_day(self.data, tz=tz))
+        return self._with_data(add_time_of_day(self.data, tz=tz))
 
     def with_distance(self) -> "Ride":
         """Add ``dist_m`` (metres from the previous point) column.
 
-        See :func:`calc_distance`.
+        See :func:`~polkupy.geo.calc_distance`.
 
         Returns:
             Ride: A :class:`Ride` with ``dist_m`` column added. The first
             point has no previous point, so it is ``NaN``.
         """
-        return Ride(calc_distance(self.data))
+        return self._with_data(calc_distance(self.data))
 
     def with_speed(self) -> "Ride":
         """Add the ``dist_m`` (if not already present; see also
-        :func:`calc_distance`) and ``speed_kmh`` columns.
+        :func:`~polkupy.geo.calc_distance`) and ``speed_kmh`` columns.
 
         See :func:`~polkupy.geo.calc_speed`.
 
@@ -407,4 +402,4 @@ class Ride:
             added. The first point has no previous point, so both are
             ``NaN``.
         """
-        return Ride(calc_speed(self.data))
+        return self._with_data(calc_speed(self.data))

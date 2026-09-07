@@ -40,13 +40,33 @@ def haversine(
     return c * EARTH_RADIUS_M
 
 
+def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute per-point distance from consecutive GPS points.
+
+    Args:
+        df (pandas.DataFrame): Points with ``lat``, ``lon`` columns, e.g.
+            :attr:`Ride.data <polkupy.core.ride.Ride.data>`.
+
+    Returns:
+        pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
+        distance from the previous point, in metres) column added. The
+        first row has no previous point, so it is ``NaN``.
+    """
+    df = df.copy()
+    df["dist_m"] = haversine(
+        df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
+    )
+    return df
+
+
 def calc_speed(df: pd.DataFrame) -> pd.DataFrame:
     """Compute per-point speed from consecutive GPS points.
 
     Args:
         df (pandas.DataFrame): Points with ``time``, ``lat``, ``lon``
             columns, e.g. :attr:`Ride.data <polkupy.core.ride.Ride.data>`.
-            If a ``dist_m`` column is already present, it is reused.
+            If a ``dist_m`` column is already present (see
+            :func:`calc_distance`), it is reused.
 
     Returns:
         pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle

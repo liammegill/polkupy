@@ -5,7 +5,7 @@ concatenated :class:`pandas.DataFrame` grouped by ``ride_id``.
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Iterator
+from typing import Callable, Iterable, Iterator, Literal
 
 import pandas as pd
 
@@ -89,6 +89,36 @@ class Trips:
 
     # -- special methods ------------------------------------------------------
 
+    def __add__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
+        """Concatenate this collection with another ride or collection.
+        Accepts ``0`` as well as :class:`Ride`/:class:`Trips` so that
+        :func:`sum` works, e.g. ``sum(list_of_rides)``.
+
+        Args:
+            other (Literal[0] | Ride | Trips): Another ride or collection to
+                concatenate onto this one, or ``0``.
+
+        Returns:
+            Trips: ``self`` if ``other`` is ``0``. Otherwise, a new
+            :class:`Trips` collection holding every point from both
+            ``self`` and ``other``.
+        """
+        if other == 0:
+            return self
+        return Trips.from_rides([self, other])
+
+    def __radd__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
+        """Reflected concatenation.
+
+        Args:
+            other (Literal[0] | Ride | Trips): Another ride or collection to
+                concatenate onto this one, or ``0``.
+
+        Returns:
+            Trips: See :meth:`__add__`.
+        """
+        return self + other
+
     def __len__(self) -> int:
         """The number of distinct rides in this collection.
 
@@ -125,6 +155,67 @@ class Trips:
 
     def __repr__(self) -> str:
         return f"Trips({len(self)} rides, {len(self.data)} points)"
+
+    # -- jupyter viewing ------------------------------------------------------
+
+    _REPR_MAX_ROWS = 15
+
+    def _repr_html_(self) -> str:
+        """Render collection metadata plus a per-ride table, so a
+        :class:`Trips` displays as a summary card just by being the last
+        line of a Jupyter cell."""
+        return (
+            "<div><h3>Trips</h3>"
+            f"<ul>{self._repr_bullets()}</ul>"
+            f"{self._repr_ride_table()}</div>"
+        )
+
+    def _repr_bullets(self) -> str:
+        """The ``<li>`` summary bullets (ride/bike counts, start/end)."""
+        has_bike_id = "bike_id" in self.data.columns
+        items = [f"<b>rides</b>: {len(self)}"]
+        if has_bike_id:
+            items.append(f"<b>bikes</b>: {self.data['bike_id'].nunique()}")
+        items += [
+            f"<b>start</b>: {self.data['time'].min()}",
+            f"<b>end</b>: {self.data['time'].max()}",
+        ]
+        return "".join(f"<li>{item}</li>" for item in items)
+
+    def _repr_ride_table(self) -> str:
+        """The per-ride ``<table>`` (ride ID, bike ID, point count), capped
+        at :attr:`_REPR_MAX_ROWS` rides with a "... and N more" footer."""
+        has_bike_id = "bike_id" in self.data.columns
+        counts = self.data.groupby("ride_id").size()
+        bike_ids = (
+            self.data.groupby("ride_id")["bike_id"].first() if has_bike_id else None
+        )
+
+        ride_ids = list(counts.index)
+        rows = [
+            self._repr_ride_row(ride_id, counts.loc[ride_id], bike_ids)
+            for ride_id in ride_ids[: self._REPR_MAX_ROWS]
+        ]
+
+        footer = ""
+        if len(ride_ids) > self._REPR_MAX_ROWS:
+            remaining = len(ride_ids) - self._REPR_MAX_ROWS
+            footer = f'<p style="margin-top: 0.5em;"><em>... and {remaining} more rides</em></p>'
+
+        cell_style = 'style="text-align: left; padding: 2px 1em 2px 0;"'
+        return (
+            '<table style="margin-top: 0.5em; border-collapse: collapse;">'
+            f"<thead><tr><th {cell_style}>ride ID</th><th {cell_style}>bike ID</th>"
+            f'<th style="text-align: left; padding: 2px 0;">count</th></tr></thead>'
+            f"<tbody>{''.join(rows)}</tbody></table>{footer}"
+        )
+
+    @staticmethod
+    def _repr_ride_row(ride_id: str, count: int, bike_ids: "pd.Series | None") -> str:
+        """One ``<tr>`` of the per-ride table."""
+        bike_id = bike_ids.loc[ride_id] if bike_ids is not None else None
+        bike_id = "" if bike_id is None or pd.isna(bike_id) else bike_id
+        return f"<tr><td>{ride_id}</td><td>{bike_id}</td><td>{count}</td></tr>"
 
     # -- filtering (return a new Trips) ---------------------------------------
 

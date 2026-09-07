@@ -49,6 +49,9 @@ package-dir = { "" = "src" }
 where = ["src"]
 include = ["polkupy", "polkupy.*"]
 
+[tool.setuptools.package-data]
+polkupy = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
@@ -78,9 +81,10 @@ polkupy = { path = ".", editable = true, extras = ["dev"] }
 
 [tool.pixi.feature.dev.tasks]
 test = "pytest"
-typecheck = "mypy src"
+typecheck = "mypy src tests"
 lint = "pylint src/polkupy"
-check = { depends-on = ["typecheck", "lint"] }
+black = "black src tests"
+lintchecker = { depends-on = ["typecheck", "lint", "black"] }
 
 # nb environment
 [tool.pixi.feature.nb.pypi-dependencies]
