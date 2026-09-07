@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polkupy"
+version = "0.1.0"
+description = "A python package to analyse and visualise personal cycling activities"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Liam Megill", email = "liam@megill.eu" }]
+keywords = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "gpxpy",
+    "matplotlib",
+    "numpy",
+    "pandas",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "build",
+    "mypy",
+    "pandas-stubs",
+    "pylint",
+    "pytest",
+    "readme_renderer[md]",
+    "twine",
+]
+nb = [
+    "notebook"
+]
+docs = [
+    "sphinx",
+    "furo"
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["polkupy", "polkupy.*"]
+
+[tool.setuptools.package-data]
+polkupy = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.pyright]
+# matplotlib's stubs are incomplete for several plotting methods
+reportUnknownMemberType = false
+
+# -- pixi setup ---------------------------------------------------------------
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
+
+[tool.pixi.dependencies]
+python = "3.13.*"
+
+[tool.pixi.environments]
+default = { features = [], solve-group = "default" }
+dev = { features = ["dev", "nb", "docs"], solve-group = "default" }
+
+# default environment
+[tool.pixi.pypi-dependencies]
+polkupy = { path = ".", editable = true }
+
+# dev environment
+[tool.pixi.feature.dev.pypi-dependencies]
+polkupy = { path = ".", editable = true, extras = ["dev"] }
+
+[tool.pixi.feature.dev.tasks]
+test = "pytest"
+typecheck = "mypy src tests"
+lint = "pylint src/polkupy"
+black = "black src tests"
+lintchecker = { depends-on = ["typecheck", "lint", "black"] }
+build-sdist = "python -m build"
+twine-check = "twine check dist/*"
+build = { depends-on = ["build-sdist", "twine-check"] }
+
+# nb environment
+[tool.pixi.feature.nb.pypi-dependencies]
+polkupy = { path = ".", editable = true, extras = ["nb"] }
+
+# docs environment
+[tool.pixi.feature.docs.pypi-dependencies]
+polkupy = { path = ".", editable = true, extras = ["docs"] }
+
+[tool.pixi.feature.docs.tasks]
+docs-build = "sphinx-build -b html docs docs/_build/html"
+docs-clean = "rm -rf docs/_build"

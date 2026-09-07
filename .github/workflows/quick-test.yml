@@ -1,0 +1,27 @@
+# fast, single-config test for every push/PR
+
+name: quick-test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quick-test:
+    name: Quick test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install polkupy via pip
+        run: pip install ".[dev]"
+
+      - name: Run tests
+        run: pytest tests/
