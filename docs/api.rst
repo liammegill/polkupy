@@ -10,7 +10,7 @@ Core
 
 .. autoclass:: polkupy.Trips
    :members:
-   :special-members: __len__, __iter__, __getitem__
+   :special-members: __add__, __radd__, __len__, __iter__, __getitem__
 
 Geography
 ---------

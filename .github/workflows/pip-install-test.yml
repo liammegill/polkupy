@@ -1,0 +1,33 @@
+# This workflow tests pip installations
+
+name: pip-install
+
+on:
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: "0 3 * * 1"  # Mondays 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  pip-install:
+    name: Test pip installation for Python 3.11 -> 3.14
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install polkupy via pip
+        run: pip install ".[dev]"
+
+      - name: Run tests
+        run: pytest tests/

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polkupy"
-version = "0.0.1"
+version = "0.1.0"
 description = "A python package to analyse and visualise personal cycling activities"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,11 +25,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black",
+    "build",
     "mypy",
     "pandas-stubs",
-    "prospector",
     "pylint",
-    "pyroma",
     "pytest",
     "readme_renderer[md]",
     "twine",
@@ -85,6 +84,9 @@ typecheck = "mypy src tests"
 lint = "pylint src/polkupy"
 black = "black src tests"
 lintchecker = { depends-on = ["typecheck", "lint", "black"] }
+build-sdist = "python -m build"
+twine-check = "twine check dist/*"
+build = { depends-on = ["build-sdist", "twine-check"] }
 
 # nb environment
 [tool.pixi.feature.nb.pypi-dependencies]
