@@ -48,7 +48,7 @@ def load_gpx(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
     """
     extensions = extensions or []
 
-    with open(filepath, "r", encoding="utf-8") as file:
+    with Path(filepath).open(encoding="utf-8") as file:
         try:
             gpx = gpxpy.parse(file)
         except gpxpy.gpx.GPXException as exc:
@@ -82,8 +82,9 @@ def load_gpx_dir(
     bikes: list[str] | None = None,
     extensions: list[str] | None = None,
 ) -> pd.DataFrame:
-    """Load every GPX ride from a directory of per-bike subfolders. A file that
-    fails to load is skipped with a :class:`UserWarning`.
+    """Load every GPX ride from a directory of per-bike subfolders.
+
+    A file that fails to load is skipped with a :class:`UserWarning`.
 
     Args:
         data_dir (str): Directory containing one subfolder per bike, each
@@ -139,7 +140,6 @@ def _point_to_dict(
     Returns:
         dict: Dictionary with data for one track point.
     """
-
     # check timestamp is present (gpxpy doesn't check this)
     time = point.time
     if time is None:
@@ -160,7 +160,7 @@ def _point_to_dict(
         "lat": lat,
         "lon": lon,
         "ele": ele,
-        **{ext: None for ext in extensions},
+        **dict.fromkeys(extensions),
     }
     if point.extensions and extensions:
         point_data.update(_extension_values(point.extensions, extensions))
@@ -175,8 +175,9 @@ def _check_range(
     time: datetime,
     filepath: str,
 ) -> None:
-    """Checks whether the data is within first-order plausibility, otherwise
-    raises a ValueError.
+    """Checks whether the data is within first-order plausibility.
+
+    Raises a ValueError otherwise.
 
     Args:
         value (float, optional): value to check, e.g. a latitude. Skipped
@@ -205,8 +206,10 @@ def _check_range(
 def _extension_values(
     ext_elements: list[Any], extensions: list[str]
 ) -> dict[str, float | None]:
-    """Match each raw extension element's tag against the requested
-    ``extensions`` by substring, parsing its text as a float.
+    """Match each raw extension element's tag against the requested extensions.
+
+    ``extensions`` are matched by substring, and each element's text is
+    parsed as a float.
 
     Args:
         ext_elements (list): Raw ``<extensions>`` child elements from

@@ -1,6 +1,9 @@
-"""
-Provides the :class:`Ride` class: a single ride as a chainable wrapper
-around a :class:`pandas.DataFrame` of points.
+"""Provides the :class:`Ride` class.
+
+This is the base of the whole polkupy package. The :class:`Ride` is a single
+ride as a chainable wrapper around a :class:`pandas.DataFrame` of points, which
+can currently be read in from a GPX file (more options will be added in the
+future).
 """
 
 from __future__ import annotations
@@ -8,7 +11,7 @@ from __future__ import annotations
 import base64
 from io import BytesIO
 from pathlib import Path
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,7 +27,9 @@ if TYPE_CHECKING:
 
 
 class Ride:
-    """A single ride: the points of one GPX track, plus its metadata. Rides
+    """A single ride.
+
+    The class includes the points of one track plus its metadata. Rides
     are the building block of all processing methods, built on top of a
     :class:`pandas.DataFrame`. The minimum required columns are:
 
@@ -88,9 +93,11 @@ class Ride:
 
     # -- special methods ------------------------------------------------------
 
-    def __add__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
-        """Concatenate this ride with another ride or collection. Accepts ``0``
-        as well as :class:`Ride`/:class:`Trips` so that :func:`sum` works.
+    def __add__(self, other: Literal[0] | Ride | Trips) -> Trips:
+        """Concatenate this ride with another ride or collection.
+
+        Accepts ``0`` as well as :class:`Ride`/:class:`Trips` so that
+        :func:`sum` works.
 
         Args:
             other (Literal[0] | Ride | Trips): Another ride or collection to
@@ -102,7 +109,7 @@ class Ride:
             point from both ``self`` and ``other``.
         """
         # imported here to prevent recursion
-        from .trips import Trips  # pylint: disable=import-outside-toplevel
+        from .trips import Trips  # noqa: PLC0415
 
         # convert Ride -> Trips if there is nothing to add to
         if other == 0:
@@ -110,7 +117,7 @@ class Ride:
 
         return Trips.from_rides([self, other])
 
-    def __radd__(self, other: Literal[0] | Ride | "Trips") -> "Trips":
+    def __radd__(self, other: Literal[0] | Ride | Trips) -> Trips:
         """Reflected concatenation.
 
         Args:
@@ -133,9 +140,11 @@ class Ride:
     # -- jupyter viewing ------------------------------------------------------
 
     def _repr_png_(self) -> bytes:
-        """Render the route as a small map, as PNG bytes. The start and end
-        points are marked with a green "play" triangle and a red "stop"
-        square respectively."""
+        """Render the route as a small map, as PNG bytes.
+
+        The start and end points are marked with a green "play" triangle and a
+        red "stop" square respectively.
+        """
         fig, ax = plt.subplots(figsize=(3, 3))
         ax.set_aspect(1 / np.cos(np.radians(self.data["lat"].mean())))
         ax.axis("off")
@@ -169,8 +178,11 @@ class Ride:
         return buf.getvalue()
 
     def _repr_html_(self) -> str:
-        """Render ride metadata plus a small map, so a :class:`Ride` displays
-        as a summary card just by being the last line of a Jupyter cell."""
+        """Render ride metadata plus a small map.
+
+        This means that a :class:`Ride` displays as a summary card just by
+        being the last line of a Jupyter cell.
+        """
         items: list[str] = []
         if self.ride_id is not None:
             items.append(f"<b>ride ID</b>: {self.ride_id}")
@@ -184,10 +196,11 @@ class Ride:
         ]
         bullets = "".join(f"<li>{item}</li>" for item in items)
         img_b64 = base64.b64encode(self._repr_png_()).decode("ascii")
+        img_style = "margin-top: 0.5em;"
         return (
             "<div><h3>Ride</h3>"
             f"<ul>{bullets}</ul>"
-            f'<img src="data:image/png;base64,{img_b64}" style="margin-top: 0.5em;"/></div>'
+            f'<img src="data:image/png;base64,{img_b64}" style="{img_style}"/></div>'
         )
 
     # -- data entry -----------------------------------------------------------
@@ -199,7 +212,7 @@ class Ride:
         bike_id: str | None = None,
         ride_id: str | None = None,
         extensions: list[str] | None = None,
-    ) -> "Ride":
+    ) -> Ride:
         """Load a single GPX file as a :class:`Ride`.
 
         See :func:`~polkupy.io.gpx.load_gpx` for how the file itself is
@@ -230,7 +243,7 @@ class Ride:
         return cls(data, ride_id=ride_id, bike_id=bike_id)
 
     @classmethod
-    def from_fit(cls) -> "Ride":
+    def from_fit(cls) -> Ride:
         """Load a single FIT file as a :class:`Ride`.
 
         Raises:
@@ -260,28 +273,32 @@ class Ride:
 
     @property
     def duration(self) -> pd.Timedelta:
-        """Elapsed wall-clock time from :attr:`start_time` to
-        :attr:`end_time`, as a :class:`pandas.Timedelta`.
+        """Elapsed wall-clock time from :attr:`start_time` to :attr:`end_time`.
 
-        This is total elapsed time, not moving time. It includes any
-        time spent stopped (e.g. at traffic lights).
+        The output is a :class:`pandas.Timedelta`. This is total elapsed time,
+        not moving time. It includes any time spent stopped (e.g. at traffic
+        lights).
         """
         return self.end_time - self.start_time
 
     @property
     def sampling_rate(self) -> pd.Timedelta:
-        """Typical interval between consecutive points, as the median of
-        per-point time differences, as a :class:`pandas.Timedelta`.
+        """Typical interval between consecutive points.
+
+        Calculated as the median of per-point time differences, as a
+        :class:`pandas.Timedelta`.
         """
         return pd.Timedelta(self.data["time"].diff().median())
 
     @property
     def distance_km(self) -> float:
-        """Total distance covered, in km, as the cumulative great-circle
-        distance between consecutive points.
+        """Total distance covered in km.
+
+        Calculated as the cumulative great-circle distance between consecutive
+        points.
         """
         lat, lon = self.data["lat"].to_numpy(), self.data["lon"].to_numpy()
-        if len(lat) < 2:
+        if len(lat) < 2:  # noqa: PLR2004
             return 0.0
         dist_m = haversine(lon[:-1], lat[:-1], lon[1:], lat[1:])
         return float(np.nansum(dist_m)) / 1e3
@@ -291,8 +308,9 @@ class Ride:
     def starts_near(
         self, lat: float, lon: float, radius_km: float = 0.5, n_points: int = 5
     ) -> bool:
-        """Whether the ride starts near a given point. See :meth:`_near` for
-        how "near" is checked.
+        """Whether the ride starts near a given point.
+
+        See :meth:`_near` for how "near" is checked.
 
         Args:
             lat (float): target latitude, in degrees.
@@ -312,8 +330,9 @@ class Ride:
     def ends_near(
         self, lat: float, lon: float, radius_km: float = 0.5, n_points: int = 5
     ) -> bool:
-        """Whether the ride ends near a given point. See :meth:`_near` for how
-        "near" is checked.
+        """Whether the ride ends near a given point.
+
+        See :meth:`_near` for how "near" is checked.
 
         Args:
             lat (float): target latitude, in degrees.
@@ -332,9 +351,10 @@ class Ride:
 
     @staticmethod
     def _near(points: pd.DataFrame, lat: float, lon: float, radius_km: float) -> bool:
-        """Whether ``points`` is near ``(lat, lon)``. This uses a true circular
-        radius calculated via :func:`~polkupy.geo.haversine`. "near" is
-        satisfied as soon as *any single* row is within ``radius_km``
+        """Whether ``points`` is near ``(lat, lon)``.
+
+        This uses a true circular radius calculated via :func:`~polkupy.geo.haversine`.
+        "near" is satisfied as soon as *any single* row is within ``radius_km``
         great-circle distance of ``(lat, lon)``.
 
         Args:
@@ -352,10 +372,11 @@ class Ride:
 
     # -- transforms (return a new Ride) ---------------------------------------
 
-    def _with_data(self, data: pd.DataFrame) -> "Ride":
-        """Build a new :class:`Ride` from ``data``, preserving this ride's
-        identity (:attr:`ride_id`/:attr:`bike_id`) regardless of whether
-        ``data`` happens to carry them as columns.
+    def _with_data(self, data: pd.DataFrame) -> Ride:
+        """Build a new :class:`Ride` from ``data``.
+
+        This function preserves this ride's identity (:attr:`ride_id`/:attr:`bike_id`)
+        regardless of whether ``data`` happens to carry them as columns.
 
         Args:
             data (pandas.DataFrame): Replacement data, e.g. from one of the
@@ -366,7 +387,7 @@ class Ride:
         """
         return Ride(data, ride_id=self.ride_id, bike_id=self.bike_id)
 
-    def localised(self, tz: str = "Europe/Berlin") -> "Ride":
+    def localised(self, tz: str = "Europe/Berlin") -> Ride:
         """Align the ride to a 24h clock, ignoring the calendar date.
 
         See :func:`~polkupy.clock.add_time_of_day`.
@@ -380,7 +401,7 @@ class Ride:
         """
         return self._with_data(add_time_of_day(self.data, tz=tz))
 
-    def with_distance(self) -> "Ride":
+    def with_distance(self) -> Ride:
         """Add ``dist_m`` (metres from the previous point) column.
 
         See :func:`~polkupy.geo.calc_distance`.
@@ -391,9 +412,8 @@ class Ride:
         """
         return self._with_data(calc_distance(self.data))
 
-    def with_speed(self) -> "Ride":
-        """Add the ``dist_m`` (if not already present; see also
-        :func:`~polkupy.geo.calc_distance`) and ``speed_kmh`` columns.
+    def with_speed(self) -> Ride:
+        """Add the ``dist_m`` (if not already present) and ``speed_kmh`` columns.
 
         See :func:`~polkupy.geo.calc_speed`.
 

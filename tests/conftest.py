@@ -23,8 +23,11 @@ GPX_HEADER = (
 
 @pytest.fixture
 def write_gpx():
-    """Factory for writing a minimal one-track, one-segment GPX file at an
-    arbitrary path (parent directories are created as needed)."""
+    """Factory for writing a minimal one-track, one-segment GPX file.
+
+    The file is written at an arbitrary path (parent directories are
+    created as needed).
+    """
 
     def _write(path: Path, trkpts: str) -> str:
         xml = f"{GPX_HEADER}<trk><trkseg>{trkpts}</trkseg></trk></gpx>"
@@ -41,9 +44,10 @@ def _points(
     lon: float = 13.0,
     start: str = "2026-01-01T00:00:00Z",
 ) -> pd.DataFrame:
-    """``n`` points, 1 degree of latitude and 1000s apart at constant
-    longitude; the same known-value shape used in tests/test_geo.py, so
-    each consecutive gap is exactly ``EARTH_RADIUS_M * radians(1)`` metres.
+    """``n`` points, 1 degree of latitude and 1000s apart at constant longitude.
+
+    This is the same known-value shape used in tests/test_geo.py, so each
+    consecutive gap is exactly ``EARTH_RADIUS_M * radians(1)`` metres.
     """
     start_ts = pd.Timestamp(start)
     time = start_ts + pd.to_timedelta([i * 1000 for i in range(n)], unit="s")
@@ -61,7 +65,7 @@ def ride_factory():
     """Factory for building a :class:`Ride` with custom identity/geography."""
 
     # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def _make(
+    def _make(  # noqa: PLR0913, PLR0917 - one arg per Ride field
         ride_id: str = "ride1",
         bike_id: str | None = None,
         n: int = 10,
@@ -76,8 +80,11 @@ def ride_factory():
 
 @pytest.fixture
 def ride(ride_factory) -> Ride:
-    """A single, minimal-but-realistic :class:`Ride` (10 points, 1 degree of
-    latitude and 1000s apart, starting at 2026-01-01T00:00:00Z)."""
+    """A single, minimal-but-realistic :class:`Ride`.
+
+    10 points, 1 degree of latitude and 1000s apart, starting at
+    2026-01-01T00:00:00Z.
+    """
     return ride_factory()
 
 

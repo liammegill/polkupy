@@ -24,13 +24,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black",
     "build",
     "mypy",
     "pandas-stubs",
-    "pylint",
     "pytest",
     "readme_renderer[md]",
+    "ruff",
     "twine",
 ]
 nb = [
@@ -81,9 +80,11 @@ polkupy = { path = ".", editable = true, extras = ["dev"] }
 [tool.pixi.feature.dev.tasks]
 test = "pytest"
 typecheck = "mypy src tests"
-lint = "pylint src/polkupy"
-black = "black src tests"
-lintchecker = { depends-on = ["typecheck", "lint", "black"] }
+lint = "ruff check"
+lint-fix = "ruff check --fix"
+format-check = "ruff format src tests --check"
+format = "ruff format src tests"
+full-check = { depends-on = ["typecheck", "lint-fix", "format"] }
 build-sdist = "python -m build"
 twine-check = "twine check dist/*"
 build = { depends-on = ["build-sdist", "twine-check"] }
@@ -99,3 +100,51 @@ polkupy = { path = ".", editable = true, extras = ["docs"] }
 [tool.pixi.feature.docs.tasks]
 docs-build = "sphinx-build -b html docs docs/_build/html"
 docs-clean = "rm -rf docs/_build"
+
+
+# -- ruff configuration -------------------------------------------------------
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["notebooks", "docs"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "D",      # pydocstyle
+    "C90",    # mccabe complexity
+    "C4",     # flake8-comprehensions
+    "PL",     # pylint
+    "S",      # flake8-bandit (dodgy-equivalent)
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "PTH",    # flake8-use-pathlib
+    "RUF",    # Ruff-specific rules
+    "PERF",   # perflint
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert is idiomatic in pytest
+    "D102",    # test method names are self-documenting
+    "PLR2004", # magic values are normal in test assertions
+]
+
+[tool.ruff.format]
+# black-compatible by default, no overrides needed here yet.
+
+# -- mypy configuration -------------------------------------------------------
+
+[tool.mypy]
+ignore_missing_imports = true

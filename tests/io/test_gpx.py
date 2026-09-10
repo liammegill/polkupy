@@ -59,22 +59,26 @@ class TestLoadGpx:
         ("trkpt", "match"),
         [
             pytest.param(
-                '<trkpt lat="120.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
+                '<trkpt lat="120.0" lon="13.0">'
+                "<time>2026-01-01T00:00:00Z</time></trkpt>",
                 "latitude=120.0",
                 id="lat-too-high",
             ),
             pytest.param(
-                '<trkpt lat="-95.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
+                '<trkpt lat="-95.0" lon="13.0">'
+                "<time>2026-01-01T00:00:00Z</time></trkpt>",
                 "latitude=-95.0",
                 id="lat-too-low",
             ),
             pytest.param(
-                '<trkpt lat="52.0" lon="200.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
+                '<trkpt lat="52.0" lon="200.0">'
+                "<time>2026-01-01T00:00:00Z</time></trkpt>",
                 "longitude=200.0",
                 id="lon-too-high",
             ),
             pytest.param(
-                '<trkpt lat="52.0" lon="-200.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
+                '<trkpt lat="52.0" lon="-200.0">'
+                "<time>2026-01-01T00:00:00Z</time></trkpt>",
                 "longitude=-200.0",
                 id="lon-too-low",
             ),
@@ -100,8 +104,11 @@ class TestLoadGpx:
             load_gpx(path)
 
     def test_boundary_values_are_valid(self, tmp_path, write_gpx):
-        """The range checks are inclusive: exactly +-90 lat / +-180 lon are
-        real, valid coordinates (the poles and the antimeridian)."""
+        """The range checks are inclusive.
+
+        Exactly +-90 lat / +-180 lon are real, valid coordinates (the
+        poles and the antimeridian).
+        """
         path = write_gpx(
             tmp_path / "ride.gpx",
             '<trkpt lat="90.0" lon="-180.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
@@ -116,8 +123,11 @@ class TestLoadGpx:
             load_gpx(path)
 
     def test_elevation_zero_is_not_coerced_to_none(self, tmp_path, write_gpx):
-        """point.elevation is falsy at 0m; a naive `if elevation else None`
-        would wrongly drop real sea-level readings."""
+        """point.elevation is falsy at 0m.
+
+        A naive `if elevation else None` would wrongly drop real
+        sea-level readings.
+        """
         path = write_gpx(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><ele>0</ele>'

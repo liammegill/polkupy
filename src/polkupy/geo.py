@@ -12,8 +12,7 @@ EARTH_RADIUS_M = 6371000  # mean Earth radius, in metres
 def haversine(
     lon1: npt.ArrayLike, lat1: npt.ArrayLike, lon2: npt.ArrayLike, lat2: npt.ArrayLike
 ) -> npt.NDArray[np.float64]:
-    """Great-circle distance between two points on Earth using the
-    haversine formula.
+    """Great-circle distance between two points on Earth using the haversine formula.
 
     Args:
         lon1 (numpy.typing.ArrayLike): Longitude of the first point(s), in

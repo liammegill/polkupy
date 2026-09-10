@@ -8,9 +8,10 @@ import pandas as pd
 def filter_rides_in_bbox(
     df: pd.DataFrame, lat_min: float, lat_max: float, lon_min: float, lon_max: float
 ) -> pd.DataFrame:
-    """Keep only rides that pass through a geographic bounding box. A ride is
-    kept in full (not point-cropped) as long as at least one of its points
-    falls inside the box.
+    """Keep only rides that pass through a geographic bounding box.
+
+    A ride is kept in full (not point-cropped) as long as at least one of
+    its points falls inside the box.
 
     Args:
         df (pandas.DataFrame): Points with ``ride_id``, ``lat``, ``lon``
