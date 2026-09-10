@@ -1,0 +1,97 @@
+# Ruff (lint + format) and mypy, run over the whole repo on every PR (and
+# manually via workflow_dispatch).
+#
+# On a pull_request, findings are posted as inline review comments via
+# reviewdog rather than just failing the job, so they show up where they're
+# relevant.
+
+name: lint
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Ruff + mypy
+    runs-on: ubuntu-latest
+    # reviewdog posts inline PR review comments via the GitHub API.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install package with dev extras
+        run: pip install ".[dev]"
+
+      - name: Set up reviewdog
+        if: github.event_name == 'pull_request'
+        uses: reviewdog/action-setup@v1
+
+      # -- Ruff lint ----------------------------------------------------------
+
+      - name: Ruff check
+        if: github.event_name != 'pull_request'
+        run: ruff check
+
+      # Ruff's own rdjson output format is reviewdog's native rdjson input.
+      - name: Ruff check (rdjson)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: ruff check --output-format=rdjson > ruff-lint.rdjson.json
+
+      - name: Post Ruff lint findings as inline PR comments
+        if: github.event_name == 'pull_request'
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog -f=rdjson -name="ruff" -reporter=github-pr-review \
+            -filter-mode=nofilter -fail-level=any < ruff-lint.rdjson.json
+
+      # -- Ruff format --------------------------------------------------------
+
+      - name: Ruff format check
+        if: github.event_name != 'pull_request'
+        run: ruff format src tests --check
+
+      # ruff format --diff prints a plain unified diff on stdout (the
+      # "N files would be reformatted" summary goes to stderr instead), which
+      # is exactly reviewdog's native diff input
+      - name: Ruff format check (diff)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: ruff format src tests --check --diff > ruff-format.diff
+
+      - name: Post Ruff formatting suggestions as inline PR comments
+        if: github.event_name == 'pull_request'
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog -f=diff -f.diff.strip=0 -name="ruff-format" \
+            -reporter=github-pr-review -filter-mode=nofilter \
+            -fail-level=any < ruff-format.diff
+
+      # -- mypy ---------------------------------------------------------------
+
+      - name: mypy
+        if: github.event_name != 'pull_request'
+        run: mypy src tests
+
+      - name: mypy (for reviewdog)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: mypy src tests > mypy.log
+
+      - name: Post mypy findings as inline PR comments
+        if: github.event_name == 'pull_request'
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog -f=mypy -name="mypy" -reporter=github-pr-review \
+            -filter-mode=nofilter -fail-level=any < mypy.log
