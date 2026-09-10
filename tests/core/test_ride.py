@@ -50,12 +50,14 @@ class TestRideInit:
         assert (ride.data["ride_id"] == "abc").all()
 
     def test_bike_id_is_not_added_as_a_column(self):
-        """Unlike ride_id, an explicit bike_id is not written back onto
-        `.data`. This asymmetry is harmless for transforms (they pass
-        ride_id/bike_id through explicitly rather than re-deriving from
-        columns -- see TestRideLocalised), but Trips.__iter__/__getitem__
-        still recover bike_id from the column alone, so it would be lost
-        there for a Ride constructed this way."""
+        """Unlike ride_id, an explicit bike_id is not written back onto `.data`.
+
+        This asymmetry is harmless for transforms (they pass ride_id/bike_id
+        through explicitly rather than re-deriving from columns -- see
+        TestRideLocalised), but Trips.__iter__/__getitem__ still recover
+        bike_id from the column alone, so it would be lost there for a Ride
+        constructed this way.
+        """
         df = pd.DataFrame(
             {
                 "time": pd.to_datetime(["2026-01-01T00:00:00Z"]),
@@ -191,8 +193,10 @@ class TestRideFromGpx:
         assert ride.ride_id == "custom"
 
     def test_bike_id_is_set_as_attribute_and_column(self, tmp_path, write_gpx):
-        """Unlike the bare constructor, from_gpx writes bike_id onto the
-        DataFrame too, so it survives later transforms."""
+        """Unlike the bare constructor, from_gpx writes bike_id onto the DataFrame too.
+
+        This means it survives later transforms.
+        """
         path = write_gpx(
             tmp_path / "my_ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
@@ -313,9 +317,11 @@ class TestRideLocalised:
         assert ride.localised().ride_id == ride.ride_id
 
     def test_preserves_bike_id_even_when_not_a_column(self, ride_factory):
-        """bike_id is passed through explicitly rather than re-derived from
-        `.data`, so it survives even when (unlike ride_id) it was never
-        written back onto the DataFrame -- see TestRideInit."""
+        """bike_id is passed through explicitly rather than re-derived from `.data`.
+
+        So it survives even when (unlike ride_id) it was never written back
+        onto the DataFrame -- see TestRideInit.
+        """
         ride = ride_factory(bike_id="ktm")
         assert ride.localised().bike_id == "ktm"
 

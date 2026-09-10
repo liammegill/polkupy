@@ -13,8 +13,11 @@ class TestAddTimeOfDay:
 
     @pytest.fixture
     def multi_ride_df(self) -> pd.DataFrame:
-        """Two rides, 3 points each, 1000s apart, starting on different UTC
-        hours/days -- so per-ride independence is verifiable."""
+        """Two rides, 3 points each, 1000s apart.
+
+        Each ride starts on a different UTC hour/day, so per-ride
+        independence is verifiable.
+        """
         times = []
         ride_ids = []
         for ride_id, start in [

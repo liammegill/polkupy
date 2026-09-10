@@ -13,16 +13,20 @@ class TestFilterRidesInBbox:
 
     @pytest.fixture
     def multi_ride_df(self) -> pd.DataFrame:
-        """Three rides, 5 points each: "a" at lat [0, 4], "b" at lat [10, 14]
-        (both lon 13), and "c" at lat [50, 54], lon 100 (far away)."""
-        rows = []
-        for ride_id, lat_start, lon in [
-            ("a", 0.0, 13.0),
-            ("b", 10.0, 13.0),
-            ("c", 50.0, 100.0),
-        ]:
-            for i in range(5):
-                rows.append({"ride_id": ride_id, "lat": lat_start + i, "lon": lon})
+        """Three rides, 5 points each.
+
+        "a" at lat [0, 4], "b" at lat [10, 14] (both lon 13), and "c" at
+        lat [50, 54], lon 100 (far away).
+        """
+        rows = [
+            {"ride_id": ride_id, "lat": lat_start + i, "lon": lon}
+            for ride_id, lat_start, lon in [
+                ("a", 0.0, 13.0),
+                ("b", 10.0, 13.0),
+                ("c", 50.0, 100.0),
+            ]
+            for i in range(5)
+        ]
         return pd.DataFrame(rows)
 
     def test_keeps_ride_with_any_point_inside_box(self, multi_ride_df):
