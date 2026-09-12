@@ -90,7 +90,7 @@ class TestLoadFit:
         assert df.loc[0, "lon"] == 13.0
         assert df.loc[0, "ele"] == 34.5
 
-    def test_reads_sensor_distance_as_dist_m(self, tmp_path, fake_fit):
+    def test_reads_sensor_distance_as_dist_km(self, tmp_path, fake_fit):
         path = fake_fit(
             tmp_path / "ride.fit",
             [
@@ -103,8 +103,8 @@ class TestLoadFit:
             ],
         )
         df = load_fit(path)
-        assert pd.isna(df.loc[0, "dist_m"])
-        assert df.loc[1, "dist_m"] == pytest.approx(10.0)
+        assert pd.isna(df.loc[0, "dist_km"])
+        assert df.loc[1, "dist_km"] == pytest.approx(0.01)
 
     def test_reads_sensor_speed_preferring_enhanced(self, tmp_path, fake_fit):
         path = fake_fit(
@@ -114,14 +114,14 @@ class TestLoadFit:
         df = load_fit(path)
         assert df.loc[0, "speed_kmh"] == 28.4
 
-    def test_omits_dist_m_and_speed_kmh_when_not_in_file(self, tmp_path, fake_fit):
+    def test_omits_dist_km_and_speed_kmh_when_not_in_file(self, tmp_path, fake_fit):
         # with_distance()/with_speed() (see polkupy.geo.calc_distance and
-        # calc_speed) treat a *present* dist_m/speed_kmh column as
+        # calc_speed) treat a *present* dist_km/speed_kmh column as
         # sensor-provided and keep it as-is by default, so these columns
         # must only show up when the file actually has the data.
         path = fake_fit(tmp_path / "ride.fit", [VALID_RECORD])
         df = load_fit(path)
-        assert "dist_m" not in df.columns
+        assert "dist_km" not in df.columns
         assert "speed_kmh" not in df.columns
 
     def test_merges_records_split_across_same_timestamp(self, tmp_path, fake_fit):

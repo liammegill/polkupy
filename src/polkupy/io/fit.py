@@ -31,7 +31,7 @@ def load_fit(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
     :class:`UserWarning`, since the data is still usable without it.
 
     If the file records its own ``distance`` and/or ``speed``/``enhanced_speed``
-    fields, they are read into `dist_m`/`speed_kmh` too, the same columns
+    fields, they are read into `dist_km`/`speed_kmh` too, the same columns
     :meth:`Ride.with_distance <polkupy.core.ride.Ride.with_distance>` and
     :meth:`Ride.with_speed <polkupy.core.ride.Ride.with_speed>` would
     otherwise compute from GPS. Those methods keep this sensor-reported
@@ -94,7 +94,7 @@ def load_fit(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
 
     # add distance and speed (if present)
     if _DISTANCE_FIELD in merged.columns:
-        df["dist_m"] = merged[_DISTANCE_FIELD].diff() * 1000.0
+        df["dist_km"] = merged[_DISTANCE_FIELD].diff()
     if any(field in merged.columns for field in _SPEED_FIELDS):
         df["speed_kmh"] = _coalesce(merged, _SPEED_FIELDS)
 

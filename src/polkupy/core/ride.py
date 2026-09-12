@@ -430,33 +430,33 @@ class Ride:
         return self._with_data(add_time_of_day(self.data, tz=tz))
 
     def with_distance(self, *, overwrite: bool = False) -> Ride:
-        """Add ``dist_m`` (metres from the previous point) column.
+        """Add ``dist_km`` (km from the previous point) column.
 
         See :func:`~polkupy.geo.calc_distance`.
 
         Args:
-            overwrite (bool): If ``True``, recompute ``dist_m`` from GPS
+            overwrite (bool): If ``True``, recompute ``dist_km`` from GPS
                 even if already present. Defaults to ``False``, so sensor data
                 is kept as-is.
 
         Returns:
-            Ride: A :class:`Ride` with ``dist_m`` column added. The first
+            Ride: A :class:`Ride` with ``dist_km`` column added. The first
             point has no previous point, so it is ``NaN``.
         """
         return self._with_data(calc_distance(self.data, overwrite=overwrite))
 
     def with_speed(self, *, overwrite: bool = False) -> Ride:
-        """Add the ``dist_m`` (if not already present) and ``speed_kmh`` columns.
+        """Add the ``dist_km`` (if not already present) and ``speed_kmh`` columns.
 
         See :func:`~polkupy.geo.calc_speed`.
 
         Args:
-            overwrite (bool): If ``True``, recompute ``dist_m``/``speed_kmh``
+            overwrite (bool): If ``True``, recompute ``dist_km``/``speed_kmh``
                 from GPS even if already present. Defaults to ``False``, so
                 sensor data is kept as-is.
 
         Returns:
-            Ride: A :class:`Ride` with ``dist_m`` and ``speed_kmh`` columns
+            Ride: A :class:`Ride` with ``dist_km`` and ``speed_kmh`` columns
             added. The first point has no previous point, so both are
             ``NaN``.
         """

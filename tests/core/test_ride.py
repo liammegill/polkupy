@@ -363,16 +363,16 @@ class TestRideLocalised:
 
 
 class TestRideWithDistance:
-    """with_distance(): adds a dist_m column."""
+    """with_distance(): adds a dist_km column."""
 
     def test_first_point_has_no_distance(self, ride):
         result = ride.with_distance()
-        assert math.isnan(cast(float, result.data.loc[0, "dist_m"]))
+        assert math.isnan(cast(float, result.data.loc[0, "dist_km"]))
 
     def test_matches_known_distance(self, ride):
         result = ride.with_distance()
-        expected = EARTH_RADIUS_M * math.radians(1.0)
-        assert result.data.loc[1, "dist_m"] == pytest.approx(expected)
+        expected_km = EARTH_RADIUS_M * math.radians(1.0) / 1000
+        assert result.data.loc[1, "dist_km"] == pytest.approx(expected_km)
 
     def test_preserves_ride_id(self, ride):
         assert ride.with_distance().ride_id == ride.ride_id
@@ -381,20 +381,20 @@ class TestRideWithDistance:
         ride = ride_factory(bike_id="ktm")
         assert ride.with_distance().bike_id == "ktm"
 
-    def test_keeps_existing_dist_m_by_default(self, ride):
+    def test_keeps_existing_dist_km_by_default(self, ride):
         # e.g. a device's own distance sensor, read in by Ride.from_fit().
-        ride.data["dist_m"] = 42.0
+        ride.data["dist_km"] = 42.0
         result = ride.with_distance()
-        assert (result.data["dist_m"] == 42.0).all()
+        assert (result.data["dist_km"] == 42.0).all()
 
-    def test_overwrite_recomputes_existing_dist_m(self, ride):
-        ride.data["dist_m"] = 42.0
+    def test_overwrite_recomputes_existing_dist_km(self, ride):
+        ride.data["dist_km"] = 42.0
         result = ride.with_distance(overwrite=True)
-        assert not (result.data["dist_m"] == 42.0).all()
+        assert not (result.data["dist_km"] == 42.0).all()
 
 
 class TestRideWithSpeed:
-    """with_speed(): adds dist_m and speed_kmh columns."""
+    """with_speed(): adds dist_km and speed_kmh columns."""
 
     def test_first_point_has_no_speed(self, ride):
         result = ride.with_speed()
