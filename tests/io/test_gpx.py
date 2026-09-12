@@ -1,4 +1,4 @@
-"""Tests for polkupy.io.gpx: load_gpx and load_gpx_dir.
+"""Tests for polkupy.io.gpx: load_gpx, load_gpx_dir, and list_gpx_extensions.
 
 gpxpy itself validates lat/lon (mandatory GPX attributes) at parse time and
 raises gpxpy.gpx.GPXException; those tests just confirm load_gpx doesn't
@@ -14,7 +14,7 @@ import warnings
 import gpxpy.gpx
 import pytest
 
-from polkupy.io.gpx import load_gpx, load_gpx_dir
+from polkupy.io.gpx import list_gpx_extensions, load_gpx, load_gpx_dir
 
 VALID_TRKPT = '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>'
 
@@ -241,3 +241,33 @@ class TestLoadGpxDir:
         df = load_gpx_dir(str(tmp_path), extensions=["hr"])
 
         assert df.loc[0, "hr"] == 145.0
+
+
+class TestListGpxExtensions:
+    """list_gpx_extensions() lists every extension tag found in a GPX file."""
+
+    def test_lists_every_tag_seen(self, tmp_path, write_gpx):
+        path = write_gpx(
+            tmp_path / "ride.gpx",
+            '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time>'
+            "<extensions>"
+            "<gpxtpx:TrackPointExtension xmlns:gpxtpx="
+            '"http://www.garmin.com/xmlschemas/TrackPointExtension/v1">'
+            "<gpxtpx:hr>145</gpxtpx:hr>"
+            "<gpxtpx:cad>80</gpxtpx:cad>"
+            "</gpxtpx:TrackPointExtension>"
+            "</extensions></trkpt>",
+        )
+        assert list_gpx_extensions(path) == {"TrackPointExtension", "hr", "cad"}
+
+    def test_no_extensions_gives_empty_set(self, tmp_path, write_gpx):
+        path = write_gpx(tmp_path / "ride.gpx", VALID_TRKPT)
+        assert list_gpx_extensions(path) == set()
+
+    def test_missing_lat_raises_gpx_exception(self, tmp_path, write_gpx):
+        path = write_gpx(
+            tmp_path / "ride.gpx",
+            '<trkpt lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
+        )
+        with pytest.raises(gpxpy.gpx.GPXException, match=path):
+            list_gpx_extensions(path)

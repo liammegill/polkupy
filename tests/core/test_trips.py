@@ -175,6 +175,35 @@ class TestTripsFromGpx:
         assert len(result.data) == 2
 
 
+class TestTripsFromFit:
+    """from_fit(): loads every FIT ride from a directory."""
+
+    def test_delegates_to_load_fit_dir(self, monkeypatch):
+        captured = {}
+
+        def fake_load_fit_dir(data_dir, bikes=None, extensions=None):
+            captured["args"] = (data_dir, bikes, extensions)
+            return pd.DataFrame(
+                {
+                    "time": pd.to_datetime(
+                        ["2026-01-01T00:00:00Z", "2026-01-01T00:00:10Z"]
+                    ),
+                    "lat": [52.0, 52.001],
+                    "lon": [13.0, 13.0],
+                    "ride_id": ["r1", "r1"],
+                }
+            )
+
+        monkeypatch.setattr("polkupy.core.trips.load_fit_dir", fake_load_fit_dir)
+
+        result = Trips.from_fit("some/dir", bikes=["ktm"], extensions=["heart_rate"])
+
+        assert captured["args"] == ("some/dir", ["ktm"], ["heart_rate"])
+        assert isinstance(result, Trips)
+        assert len(result) == 1
+        assert len(result.data) == 2
+
+
 class TestTripsFromRides:
     """from_rides(): concatenates several Ride/Trips into one Trips."""
 

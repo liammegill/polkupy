@@ -14,6 +14,7 @@ import pandas as pd
 # import polkupy functions
 from ..algorithms.filters import filter_rides_in_bbox
 from ..clock import add_time_of_day
+from ..io.fit import load_fit_dir
 from ..io.gpx import load_gpx_dir
 from .ride import Ride
 
@@ -76,6 +77,30 @@ class Trips:
             Trips: The rides loaded from ``data_dir``.
         """
         return cls(load_gpx_dir(data_dir, bikes=bikes, extensions=extensions))
+
+    @classmethod
+    def from_fit(
+        cls,
+        data_dir: str = "data",
+        bikes: list[str] | None = None,
+        extensions: list[str] | None = None,
+    ) -> Trips:
+        """Load every FIT ride from a directory of per-bike subfolders.
+
+        This will need to be updated to become more flexible in the future.
+
+        Args:
+            data_dir (str): Directory containing one subfolder per bike.
+            bikes (list[str], optional): Subset of bike subfolder names to
+                load. Defaults to every subfolder found in ``data_dir``.
+            extensions (list[str], optional): Extra FIT fields to read,
+                passed through to
+                :func:`~polkupy.io.fit.load_fit_dir`.
+
+        Returns:
+            Trips: The rides loaded from ``data_dir``.
+        """
+        return cls(load_fit_dir(data_dir, bikes=bikes, extensions=extensions))
 
     @classmethod
     def from_rides(cls, rides: Iterable[Ride | Trips]) -> Trips:
