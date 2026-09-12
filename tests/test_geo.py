@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from polkupy.geo import EARTH_RADIUS_M, calc_speed, haversine
+from polkupy.geo import EARTH_RADIUS_M, calc_distance, calc_speed, haversine
 
 
 class TestHaversine:
@@ -69,6 +69,43 @@ class TestHaversine:
 
         assert result[0] == pytest.approx(EARTH_RADIUS_M * math.radians(1.0))
         assert math.isnan(result[1])
+
+
+class TestCalcDistance:
+    """calc_distance() adds a per-point dist_m column."""
+
+    @pytest.fixture
+    def points_df(self) -> pd.DataFrame:
+        # three points, 1 degree of latitude apart -- each consecutive gap
+        # is EARTH_RADIUS_M * radians(1) metres.
+        return pd.DataFrame({"lat": [52.0, 53.0, 54.0], "lon": [13.0, 13.0, 13.0]})
+
+    def test_first_row_has_no_previous_point(self, points_df):
+        result = calc_distance(points_df)
+        assert math.isnan(cast(float, result.loc[0, "dist_m"]))
+
+    def test_computes_distance_matching_haversine(self, points_df):
+        result = calc_distance(points_df)
+        expected_dist = EARTH_RADIUS_M * math.radians(1.0)
+        assert result.loc[1, "dist_m"] == pytest.approx(expected_dist)
+
+    def test_does_not_mutate_input(self, points_df):
+        original = points_df.copy()
+        calc_distance(points_df)
+        pd.testing.assert_frame_equal(points_df, original)
+
+    def test_keeps_existing_dist_m_by_default(self, points_df):
+        # e.g. a device's own distance sensor, read in by load_fit().
+        points_df["dist_m"] = [np.nan, 1234.0, 5678.0]
+        result = calc_distance(points_df)
+        assert result.loc[1, "dist_m"] == 1234.0
+        assert result.loc[2, "dist_m"] == 5678.0
+
+    def test_overwrite_recomputes_existing_dist_m(self, points_df):
+        points_df["dist_m"] = [np.nan, 1234.0, 5678.0]
+        result = calc_distance(points_df, overwrite=True)
+        expected_dist = EARTH_RADIUS_M * math.radians(1.0)
+        assert result.loc[1, "dist_m"] == pytest.approx(expected_dist)
 
 
 class TestCalcSpeed:
@@ -148,3 +185,23 @@ class TestCalcSpeed:
         points_df["ride_id"] = "abc"
         result = calc_speed(points_df)
         assert (result["ride_id"] == "abc").all()
+
+    def test_keeps_existing_speed_kmh_by_default(self, points_df):
+        # e.g. a device's own speed sensor, read in by load_fit().
+        points_df["speed_kmh"] = [np.nan, 99.0, 99.0]
+        result = calc_speed(points_df)
+        assert result.loc[1, "speed_kmh"] == 99.0
+        assert result.loc[2, "speed_kmh"] == 99.0
+
+    def test_overwrite_recomputes_existing_speed_kmh(self, points_df):
+        points_df["speed_kmh"] = [np.nan, 99.0, 99.0]
+        result = calc_speed(points_df, overwrite=True)
+        expected_dist_km = EARTH_RADIUS_M * math.radians(1.0) / 1000
+        expected_speed_kmh = expected_dist_km / (1000 / 3600)
+        assert result.loc[1, "speed_kmh"] == pytest.approx(expected_speed_kmh)
+
+    def test_overwrite_also_recomputes_existing_dist_m(self, points_df):
+        points_df["dist_m"] = [np.nan, 1234.0, 5678.0]
+        result = calc_speed(points_df, overwrite=True)
+        expected_dist = EARTH_RADIUS_M * math.radians(1.0)
+        assert result.loc[1, "dist_m"] == pytest.approx(expected_dist)

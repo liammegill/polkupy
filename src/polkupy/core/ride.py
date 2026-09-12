@@ -20,6 +20,7 @@ import pandas as pd
 # import polkupy functions
 from ..clock import add_time_of_day
 from ..geo import calc_distance, calc_speed, haversine
+from ..io.fit import load_fit
 from ..io.gpx import load_gpx
 
 if TYPE_CHECKING:
@@ -243,13 +244,40 @@ class Ride:
         return cls(data, ride_id=ride_id, bike_id=bike_id)
 
     @classmethod
-    def from_fit(cls) -> Ride:
+    def from_fit(
+        cls,
+        filepath: str,
+        bike_id: str | None = None,
+        ride_id: str | None = None,
+        extensions: list[str] | None = None,
+    ) -> Ride:
         """Load a single FIT file as a :class:`Ride`.
 
-        Raises:
-            NotImplementedError: Always. FIT import isn't built yet.
+        See :func:`~polkupy.io.fit.load_fit` for how the file itself is
+        parsed and validated.
+
+        Args:
+            filepath (str): Path to the FIT file.
+            bike_id (str, optional): Identifier for the bicycle used.
+            ride_id (str, optional): Identifier for the ride. Defaults to
+                ``f"{bike_id}/{stem}"`` if ``bike_id`` is given, otherwise
+                just the filename stem.
+            extensions (list[str], optional): Extra FIT fields to read (e.g.
+                heart rate), passed through to :func:`~polkupy.io.fit.load_fit`.
+
+        Returns:
+            Ride: The ride loaded from `filepath`.
         """
-        raise NotImplementedError
+        data = load_fit(filepath, extensions=extensions)
+
+        # add bike and ride IDs if provided
+        if bike_id is not None:
+            data["bike_id"] = bike_id
+        if ride_id is None:
+            ride_id = (
+                f"{bike_id}/{Path(filepath).stem}" if bike_id else Path(filepath).stem
+            )
+        return cls(data, ride_id=ride_id, bike_id=bike_id)
 
     # -- metadata -------------------------------------------------------------
 
@@ -401,25 +429,35 @@ class Ride:
         """
         return self._with_data(add_time_of_day(self.data, tz=tz))
 
-    def with_distance(self) -> Ride:
+    def with_distance(self, *, overwrite: bool = False) -> Ride:
         """Add ``dist_m`` (metres from the previous point) column.
 
         See :func:`~polkupy.geo.calc_distance`.
+
+        Args:
+            overwrite (bool): If ``True``, recompute ``dist_m`` from GPS
+                even if already present. Defaults to ``False``, so sensor data
+                is kept as-is.
 
         Returns:
             Ride: A :class:`Ride` with ``dist_m`` column added. The first
             point has no previous point, so it is ``NaN``.
         """
-        return self._with_data(calc_distance(self.data))
+        return self._with_data(calc_distance(self.data, overwrite=overwrite))
 
-    def with_speed(self) -> Ride:
+    def with_speed(self, *, overwrite: bool = False) -> Ride:
         """Add the ``dist_m`` (if not already present) and ``speed_kmh`` columns.
 
         See :func:`~polkupy.geo.calc_speed`.
+
+        Args:
+            overwrite (bool): If ``True``, recompute ``dist_m``/``speed_kmh``
+                from GPS even if already present. Defaults to ``False``, so
+                sensor data is kept as-is.
 
         Returns:
             Ride: A :class:`Ride` with ``dist_m`` and ``speed_kmh`` columns
             added. The first point has no previous point, so both are
             ``NaN``.
         """
-        return self._with_data(calc_speed(self.data))
+        return self._with_data(calc_speed(self.data, overwrite=overwrite))

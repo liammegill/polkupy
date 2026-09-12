@@ -47,12 +47,7 @@ def load_gpx(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
             field (latitude or longitude).
     """
     extensions = extensions or []
-
-    with Path(filepath).open(encoding="utf-8") as file:
-        try:
-            gpx = gpxpy.parse(file)
-        except gpxpy.gpx.GPXException as exc:
-            raise gpxpy.gpx.GPXException(f"{filepath}: {exc}") from exc
+    gpx = _parse_gpx(filepath)
 
     data = [
         _point_to_dict(point, extensions, filepath)
@@ -124,6 +119,48 @@ def load_gpx_dir(
         raise ValueError(f"{data_dir}: no rides found")
 
     return pd.concat(rides, ignore_index=True)
+
+
+def list_gpx_extensions(filepath: str) -> set[str]:
+    """List every extension tag name found across the GPX file's track points.
+
+    See :func:`load_gpx` for how these names are matched (by substring,
+    case-insensitively) when using the ``extensions`` argument.
+
+    Args:
+        filepath (str): Path to the GPX file.
+
+    Returns:
+        set[str]: Every distinct extension tag's local name, e.g.
+        ``{"TrackPointExtension", "hr", "cad"}``.
+
+    Raises:
+        gpxpy.gpx.GPXException: If the file is missing a mandatory GPX
+            field (latitude or longitude).
+    """
+    gpx = _parse_gpx(filepath)
+    return {
+        _local_name(child.tag)
+        for track in gpx.tracks
+        for segment in track.segments
+        for point in segment.points
+        for ext_element in point.extensions
+        for child in ext_element.iter()
+    }
+
+
+def _parse_gpx(filepath: str) -> gpxpy.gpx.GPX:
+    """Parse a GPX file, prefixing a raised GPXException with ``filepath``."""
+    with Path(filepath).open(encoding="utf-8") as file:
+        try:
+            return gpxpy.parse(file)
+        except gpxpy.gpx.GPXException as exc:
+            raise gpxpy.gpx.GPXException(f"{filepath}: {exc}") from exc
+
+
+def _local_name(tag: str) -> str:
+    """Strip a Clark-notation XML namespace (``{uri}name``) down to ``name``."""
+    return tag.rsplit("}", 1)[-1]
 
 
 def _point_to_dict(

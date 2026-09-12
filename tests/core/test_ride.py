@@ -207,11 +207,47 @@ class TestRideFromGpx:
 
 
 class TestRideFromFit:
-    """from_fit(): not implemented yet."""
+    """from_fit(): loads a single FIT file as a Ride.
 
-    def test_raises_not_implemented(self):
-        with pytest.raises(NotImplementedError):
-            Ride.from_fit()
+    FIT parsing itself (load_fit) is covered in tests/io/test_fit.py; these
+    tests stub it out to exercise only from_fit's own id-derivation logic,
+    same as TestRideFromGpx does for from_gpx.
+    """
+
+    @pytest.fixture
+    def fake_load_fit(self, monkeypatch):
+        df = pd.DataFrame(
+            {
+                "time": pd.to_datetime(["2026-01-01T00:00:00Z"]),
+                "lat": [52.0],
+                "lon": [13.0],
+            }
+        )
+        monkeypatch.setattr(
+            "polkupy.core.ride.load_fit", lambda filepath, extensions=None: df.copy()
+        )
+        return df
+
+    def test_reads_points(self, fake_load_fit):
+        ride = Ride.from_fit("ride.fit")
+        assert len(ride) == 1
+        assert ride.data.loc[0, "lat"] == 52.0
+
+    def test_ride_id_defaults_to_filename_stem(self, fake_load_fit):
+        assert Ride.from_fit("my_ride.fit").ride_id == "my_ride"
+
+    def test_ride_id_defaults_to_bike_and_stem_when_bike_given(self, fake_load_fit):
+        ride = Ride.from_fit("my_ride.fit", bike_id="ktm")
+        assert ride.ride_id == "ktm/my_ride"
+
+    def test_explicit_ride_id_overrides_default(self, fake_load_fit):
+        ride = Ride.from_fit("my_ride.fit", ride_id="custom")
+        assert ride.ride_id == "custom"
+
+    def test_bike_id_is_set_as_attribute_and_column(self, fake_load_fit):
+        ride = Ride.from_fit("my_ride.fit", bike_id="ktm")
+        assert ride.bike_id == "ktm"
+        assert (ride.data["bike_id"] == "ktm").all()
 
 
 class TestRideStartTime:
@@ -345,6 +381,17 @@ class TestRideWithDistance:
         ride = ride_factory(bike_id="ktm")
         assert ride.with_distance().bike_id == "ktm"
 
+    def test_keeps_existing_dist_m_by_default(self, ride):
+        # e.g. a device's own distance sensor, read in by Ride.from_fit().
+        ride.data["dist_m"] = 42.0
+        result = ride.with_distance()
+        assert (result.data["dist_m"] == 42.0).all()
+
+    def test_overwrite_recomputes_existing_dist_m(self, ride):
+        ride.data["dist_m"] = 42.0
+        result = ride.with_distance(overwrite=True)
+        assert not (result.data["dist_m"] == 42.0).all()
+
 
 class TestRideWithSpeed:
     """with_speed(): adds dist_m and speed_kmh columns."""
@@ -365,3 +412,14 @@ class TestRideWithSpeed:
     def test_preserves_bike_id_even_when_not_a_column(self, ride_factory):
         ride = ride_factory(bike_id="ktm")
         assert ride.with_speed().bike_id == "ktm"
+
+    def test_keeps_existing_speed_kmh_by_default(self, ride):
+        # e.g. a device's own speed sensor, read in by Ride.from_fit().
+        ride.data["speed_kmh"] = 42.0
+        result = ride.with_speed()
+        assert (result.data["speed_kmh"] == 42.0).all()
+
+    def test_overwrite_recomputes_existing_speed_kmh(self, ride):
+        ride.data["speed_kmh"] = 42.0
+        result = ride.with_speed(overwrite=True)
+        assert not (result.data["speed_kmh"] == 42.0).all()

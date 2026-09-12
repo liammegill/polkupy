@@ -39,12 +39,17 @@ def haversine(
     return c * EARTH_RADIUS_M
 
 
-def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
+def calc_distance(df: pd.DataFrame, *, overwrite: bool = False) -> pd.DataFrame:
     """Compute per-point distance from consecutive GPS points.
 
     Args:
         df (pandas.DataFrame): Points with ``lat``, ``lon`` columns, e.g.
-            :attr:`Ride.data <polkupy.core.ride.Ride.data>`.
+            :attr:`Ride.data <polkupy.core.ride.Ride.data>`. If a
+            ``dist_m`` column is already present (e.g. read from a
+            device's own sensor, see :func:`~polkupy.io.fit.load_fit`),
+            it is kept as-is unless `overwrite` is set.
+        overwrite (bool): If ``True``, recompute ``dist_m`` from GPS even
+            when already present. Defaults to ``False``.
 
     Returns:
         pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
@@ -52,20 +57,25 @@ def calc_distance(df: pd.DataFrame) -> pd.DataFrame:
         first row has no previous point, so it is ``NaN``.
     """
     df = df.copy()
-    df["dist_m"] = haversine(
-        df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
-    )
+    if overwrite or "dist_m" not in df.columns:
+        df["dist_m"] = haversine(
+            df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
+        )
     return df
 
 
-def calc_speed(df: pd.DataFrame) -> pd.DataFrame:
+def calc_speed(df: pd.DataFrame, *, overwrite: bool = False) -> pd.DataFrame:
     """Compute per-point speed from consecutive GPS points.
 
     Args:
         df (pandas.DataFrame): Points with ``time``, ``lat``, ``lon``
             columns, e.g. :attr:`Ride.data <polkupy.core.ride.Ride.data>`.
-            If a ``dist_m`` column is already present (see
-            :func:`calc_distance`), it is reused.
+            If ``dist_m``/``speed_kmh`` columns are already present (e.g.
+            read from a device's own sensor, see
+            :func:`~polkupy.io.fit.load_fit`), they are kept as-is unless
+            `overwrite` is set.
+        overwrite (bool): If ``True``, recompute ``dist_m``/``speed_kmh``
+            from GPS even when already present. Defaults to ``False``.
 
     Returns:
         pandas.DataFrame: Copy of ``df`` with ``dist_m`` (great-circle
@@ -74,10 +84,11 @@ def calc_speed(df: pd.DataFrame) -> pd.DataFrame:
         The first row has no previous point, so both are ``NaN``.
     """
     df = df.copy()
-    if "dist_m" not in df.columns:
+    if overwrite or "dist_m" not in df.columns:
         df["dist_m"] = haversine(
             df["lon"].shift(1), df["lat"].shift(1), df["lon"], df["lat"]
         )
-    dt_s = (df["time"] - df["time"].shift(1)).dt.total_seconds()
-    df["speed_kmh"] = df["dist_m"] / dt_s * 3.6
+    if overwrite or "speed_kmh" not in df.columns:
+        dt_s = (df["time"] - df["time"].shift(1)).dt.total_seconds()
+        df["speed_kmh"] = df["dist_m"] / dt_s * 3.6
     return df
