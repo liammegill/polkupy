@@ -1,0 +1,41 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install pixi
+        uses: prefix-dev/setup-pixi@v0.10.2
+
+      - name: Install docs environment from pixi.lock
+        run: pixi install --frozen -e docs
+
+      - name: Verify environment
+        run: |
+          pixi info
+          pixi list -e docs
+
+      - name: Build sphinx documentation
+        run: pixi run -e docs docs-build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs/_build/html
+          force_orphan: true

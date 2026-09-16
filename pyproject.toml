@@ -71,6 +71,7 @@ python = "3.13.*"
 [tool.pixi.environments]
 default = { features = [], solve-group = "default" }
 dev = { features = ["dev", "nb", "docs"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
 
 # default environment
 [tool.pixi.pypi-dependencies]
