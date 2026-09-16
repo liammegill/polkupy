@@ -1,4 +1,4 @@
-"""Tests for polkupy.io.gpx: load_gpx, load_gpx_dir, and list_gpx_extensions.
+"""Tests for polkupy.io.gpx: load_gpx, write_gpx, load_gpx_dir, list_gpx_extensions.
 
 gpxpy itself validates lat/lon (mandatory GPX attributes) at parse time and
 raises gpxpy.gpx.GPXException; those tests just confirm load_gpx doesn't
@@ -12,9 +12,10 @@ the cases load_gpx has to check for itself.
 import warnings
 
 import gpxpy.gpx
+import pandas as pd
 import pytest
 
-from polkupy.io.gpx import list_gpx_extensions, load_gpx, load_gpx_dir
+from polkupy.io.gpx import list_gpx_extensions, load_gpx, load_gpx_dir, write_gpx
 
 VALID_TRKPT = '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>'
 
@@ -22,8 +23,8 @@ VALID_TRKPT = '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></t
 class TestLoadGpx:
     """load_gpx() parses a single GPX file into a DataFrame."""
 
-    def test_reads_core_columns(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_reads_core_columns(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><ele>34.5</ele>'
             "<time>2026-01-01T00:00:00Z</time></trkpt>",
@@ -34,21 +35,23 @@ class TestLoadGpx:
         assert df.loc[0, "lon"] == 13.0
         assert df.loc[0, "ele"] == 34.5
 
-    def test_missing_time_raises_value_error(self, tmp_path, write_gpx):
-        path = write_gpx(tmp_path / "ride.gpx", '<trkpt lat="52.0" lon="13.0"></trkpt>')
+    def test_missing_time_raises_value_error(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
+            tmp_path / "ride.gpx", '<trkpt lat="52.0" lon="13.0"></trkpt>'
+        )
         with pytest.raises(ValueError, match="missing a timestamp"):
             load_gpx(path)
 
-    def test_missing_lat_raises_gpx_exception(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_missing_lat_raises_gpx_exception(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
         with pytest.raises(gpxpy.gpx.GPXException, match=path):
             load_gpx(path)
 
-    def test_missing_lon_raises_gpx_exception(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_missing_lon_raises_gpx_exception(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
@@ -97,19 +100,19 @@ class TestLoadGpx:
         ],
     )
     def test_out_of_range_value_raises_value_error(
-        self, tmp_path, write_gpx, trkpt, match
+        self, tmp_path, raw_gpx_factory, trkpt, match
     ):
-        path = write_gpx(tmp_path / "ride.gpx", trkpt)
+        path = raw_gpx_factory(tmp_path / "ride.gpx", trkpt)
         with pytest.raises(ValueError, match=match):
             load_gpx(path)
 
-    def test_boundary_values_are_valid(self, tmp_path, write_gpx):
+    def test_boundary_values_are_valid(self, tmp_path, raw_gpx_factory):
         """The range checks are inclusive.
 
         Exactly +-90 lat / +-180 lon are real, valid coordinates (the
         poles and the antimeridian).
         """
-        path = write_gpx(
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="90.0" lon="-180.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
@@ -117,18 +120,18 @@ class TestLoadGpx:
         assert df.loc[0, "lat"] == 90.0
         assert df.loc[0, "lon"] == -180.0
 
-    def test_no_track_points_raises_value_error(self, tmp_path, write_gpx):
-        path = write_gpx(tmp_path / "empty.gpx", "")  # valid file, zero trkpts
+    def test_no_track_points_raises_value_error(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(tmp_path / "empty.gpx", "")  # valid file, zero trkpts
         with pytest.raises(ValueError, match="no track points found"):
             load_gpx(path)
 
-    def test_elevation_zero_is_not_coerced_to_none(self, tmp_path, write_gpx):
+    def test_elevation_zero_is_not_coerced_to_none(self, tmp_path, raw_gpx_factory):
         """point.elevation is falsy at 0m.
 
         A naive `if elevation else None` would wrongly drop real
         sea-level readings.
         """
-        path = write_gpx(
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><ele>0</ele>'
             "<time>2026-01-01T00:00:00Z</time></trkpt>",
@@ -136,16 +139,16 @@ class TestLoadGpx:
         df = load_gpx(path)
         assert df.loc[0, "ele"] == 0.0
 
-    def test_missing_elevation_is_none(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_missing_elevation_is_none(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
         df = load_gpx(path)
         assert df.loc[0, "ele"] is None
 
-    def test_reads_requested_extension(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_reads_requested_extension(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time>'
             "<extensions>"
@@ -158,8 +161,8 @@ class TestLoadGpx:
         df = load_gpx(path, extensions=["hr"])
         assert df.loc[0, "hr"] == 145.0
 
-    def test_requested_extension_not_found_warns(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_requested_extension_not_found_warns(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
@@ -172,12 +175,93 @@ class TestLoadGpx:
         assert df.loc[0, "heart_rate"] is None
 
 
+class TestWriteGpx:
+    """write_gpx() writes points to a GPX file, the inverse of load_gpx."""
+
+    @pytest.fixture
+    def points_df(self) -> pd.DataFrame:
+        return pd.DataFrame(
+            {
+                "time": pd.to_datetime(
+                    ["2026-01-01T00:00:00Z", "2026-01-01T00:00:10Z"]
+                ),
+                "lat": [52.0, 52.1],
+                "lon": [13.0, 13.1],
+            }
+        )
+
+    def test_missing_required_column_raises_value_error(self, points_df):
+        del points_df["lat"]
+        with pytest.raises(ValueError, match="lat"):
+            write_gpx(points_df, "unused.gpx")
+
+    def test_round_trips_core_columns(self, tmp_path, points_df):
+        path = tmp_path / "ride.gpx"
+        write_gpx(points_df, str(path))
+
+        loaded = load_gpx(str(path))
+
+        assert list(loaded.columns) == ["time", "lat", "lon", "ele"]
+        pd.testing.assert_series_equal(loaded["time"], points_df["time"])
+        assert loaded["lat"].tolist() == pytest.approx(points_df["lat"].tolist())
+        assert loaded["lon"].tolist() == pytest.approx(points_df["lon"].tolist())
+        assert loaded["ele"].isna().all()
+
+    def test_round_trips_elevation(self, tmp_path, points_df):
+        points_df["ele"] = [400.0, 410.0]
+        path = tmp_path / "ride.gpx"
+
+        write_gpx(points_df, str(path))
+        loaded = load_gpx(str(path))
+
+        assert loaded["ele"].tolist() == pytest.approx([400.0, 410.0])
+
+    def test_missing_elevation_values_are_omitted(self, tmp_path, points_df):
+        points_df["ele"] = [400.0, float("nan")]
+        path = tmp_path / "ride.gpx"
+
+        write_gpx(points_df, str(path))
+        loaded = load_gpx(str(path))
+
+        assert loaded.loc[0, "ele"] == pytest.approx(400.0)
+        assert pd.isna(loaded.loc[1, "ele"])
+
+    def test_creates_missing_parent_directories(self, tmp_path, points_df):
+        path = tmp_path / "nested" / "dir" / "ride.gpx"
+        write_gpx(points_df, str(path))
+        assert path.exists()
+
+    def test_sub_second_timestamps_do_not_warn(self, tmp_path, points_df):
+        # a timestamp with nanosecond precision must not trigger pandas'
+        # "Discarding nonzero nanoseconds" warning
+        points_df["time"] = pd.to_datetime(
+            ["2026-01-01T00:00:00Z", "2026-01-01T00:00:10.030315123Z"],
+            format="ISO8601",
+        )
+        path = tmp_path / "ride.gpx"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            write_gpx(points_df, str(path))
+
+    def test_mixed_precision_timestamps_still_load(self, tmp_path, points_df):
+        # write_gpx may emit a mix of whole-second and sub-second
+        # timestamps; load_gpx must parse both back correctly.
+        points_df.loc[1, "time"] = pd.Timestamp("2026-01-01T00:00:10.5Z")
+        path = tmp_path / "ride.gpx"
+
+        write_gpx(points_df, str(path))
+        loaded = load_gpx(str(path))
+
+        assert loaded.loc[1, "time"] == pd.Timestamp("2026-01-01T00:00:10.5Z")
+
+
 class TestLoadGpxDir:
     """load_gpx_dir() loads every GPX ride from per-bike subfolders."""
 
-    def test_reads_every_bike_by_default(self, tmp_path, write_gpx):
-        write_gpx(tmp_path / "ktm" / "ride1.gpx", VALID_TRKPT)
-        write_gpx(tmp_path / "canyon" / "ride2.gpx", VALID_TRKPT)
+    def test_reads_every_bike_by_default(self, tmp_path, raw_gpx_factory):
+        raw_gpx_factory(tmp_path / "ktm" / "ride1.gpx", VALID_TRKPT)
+        raw_gpx_factory(tmp_path / "canyon" / "ride2.gpx", VALID_TRKPT)
 
         df = load_gpx_dir(str(tmp_path))
 
@@ -185,27 +269,27 @@ class TestLoadGpxDir:
         assert set(df["ride_id"]) == {"ktm/ride1", "canyon/ride2"}
         assert len(df) == 2
 
-    def test_filters_to_requested_bikes(self, tmp_path, write_gpx):
-        write_gpx(tmp_path / "ktm" / "ride1.gpx", VALID_TRKPT)
-        write_gpx(tmp_path / "canyon" / "ride2.gpx", VALID_TRKPT)
-        write_gpx(tmp_path / "brompton" / "ride3.gpx", VALID_TRKPT)
+    def test_filters_to_requested_bikes(self, tmp_path, raw_gpx_factory):
+        raw_gpx_factory(tmp_path / "ktm" / "ride1.gpx", VALID_TRKPT)
+        raw_gpx_factory(tmp_path / "canyon" / "ride2.gpx", VALID_TRKPT)
+        raw_gpx_factory(tmp_path / "brompton" / "ride3.gpx", VALID_TRKPT)
 
         df = load_gpx_dir(str(tmp_path), bikes=["ktm", "brompton"])
 
         assert set(df["bike_id"]) == {"ktm", "brompton"}
 
-    def test_loads_multiple_files_per_bike(self, tmp_path, write_gpx):
-        write_gpx(tmp_path / "ktm" / "a.gpx", VALID_TRKPT)
-        write_gpx(tmp_path / "ktm" / "b.gpx", VALID_TRKPT)
+    def test_loads_multiple_files_per_bike(self, tmp_path, raw_gpx_factory):
+        raw_gpx_factory(tmp_path / "ktm" / "a.gpx", VALID_TRKPT)
+        raw_gpx_factory(tmp_path / "ktm" / "b.gpx", VALID_TRKPT)
 
         df = load_gpx_dir(str(tmp_path))
 
         assert set(df["ride_id"]) == {"ktm/a", "ktm/b"}
         assert len(df) == 2
 
-    def test_skips_invalid_file_with_warning(self, tmp_path, write_gpx):
-        write_gpx(tmp_path / "ktm" / "good.gpx", VALID_TRKPT)
-        write_gpx(
+    def test_skips_invalid_file_with_warning(self, tmp_path, raw_gpx_factory):
+        raw_gpx_factory(tmp_path / "ktm" / "good.gpx", VALID_TRKPT)
+        raw_gpx_factory(
             tmp_path / "ktm" / "bad.gpx", '<trkpt lat="52.0" lon="13.0"></trkpt>'
         )  # missing timestamp -> ValueError
 
@@ -226,8 +310,8 @@ class TestLoadGpxDir:
         with pytest.raises(ValueError, match="no rides found"):
             load_gpx_dir(str(tmp_path))
 
-    def test_passes_extensions_through(self, tmp_path, write_gpx):
-        write_gpx(
+    def test_passes_extensions_through(self, tmp_path, raw_gpx_factory):
+        raw_gpx_factory(
             tmp_path / "ktm" / "ride1.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time>'
             "<extensions>"
@@ -246,8 +330,8 @@ class TestLoadGpxDir:
 class TestListGpxExtensions:
     """list_gpx_extensions() lists every extension tag found in a GPX file."""
 
-    def test_lists_every_tag_seen(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_lists_every_tag_seen(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time>'
             "<extensions>"
@@ -260,12 +344,12 @@ class TestListGpxExtensions:
         )
         assert list_gpx_extensions(path) == {"TrackPointExtension", "hr", "cad"}
 
-    def test_no_extensions_gives_empty_set(self, tmp_path, write_gpx):
-        path = write_gpx(tmp_path / "ride.gpx", VALID_TRKPT)
+    def test_no_extensions_gives_empty_set(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(tmp_path / "ride.gpx", VALID_TRKPT)
         assert list_gpx_extensions(path) == set()
 
-    def test_missing_lat_raises_gpx_exception(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_missing_lat_raises_gpx_exception(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )

@@ -1,4 +1,4 @@
-"""Open and parse .gpx files."""
+"""Open, parse, and write .gpx files."""
 
 from __future__ import annotations
 
@@ -59,7 +59,8 @@ def load_gpx(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
         raise ValueError(f"{filepath}: no track points found")
 
     df = pd.DataFrame(data)
-    df["time"] = pd.to_datetime(df["time"])
+    # ISO8601: points may mix whole-second and sub-second precision
+    df["time"] = pd.to_datetime(df["time"], format="ISO8601")
 
     for ext in extensions:
         if df[ext].isna().all():
@@ -70,6 +71,59 @@ def load_gpx(filepath: str, extensions: list[str] | None = None) -> pd.DataFrame
             )
 
     return df
+
+
+def write_gpx(df: pd.DataFrame, filepath: str) -> None:
+    """Write ride points to a GPX file, the inverse of :func:`load_gpx`.
+
+    All points are written into a single track with a single segment.
+    Missing parent directories of ``filepath`` are created as needed.
+
+    Args:
+        df (pandas.DataFrame): Points to write, with ``time``, ``lat``,
+            ``lon`` columns, e.g. :attr:`Ride.data <polkupy.core.ride.Ride.data>`.
+            An ``ele`` column, if present, is written as each point's
+            elevation.
+        filepath (str): Path of the GPX file to write.
+
+    Raises:
+        ValueError: If `df` is missing ``time``, ``lat``, or ``lon``.
+    """
+    missing = {"time", "lat", "lon"} - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"data is missing required column(s): {', '.join(sorted(missing))}"
+        )
+
+    gpx = gpxpy.gpx.GPX()
+    track = gpxpy.gpx.GPXTrack()
+    gpx.tracks.append(track)
+    segment = gpxpy.gpx.GPXTrackSegment()
+    track.segments.append(segment)
+
+    eles = df["ele"] if "ele" in df.columns else pd.Series([None] * len(df))
+    for raw_time, raw_lat, raw_lon, raw_ele in zip(
+        df["time"], df["lat"], df["lon"], eles, strict=True
+    ):
+        # floor to microseconds (datetime's native resolution)
+        time = (
+            raw_time.floor("us").to_pydatetime()
+            if isinstance(raw_time, pd.Timestamp)
+            else raw_time
+        )
+        ele = None if raw_ele is None or pd.isna(raw_ele) else float(raw_ele)
+        segment.points.append(
+            gpxpy.gpx.GPXTrackPoint(
+                latitude=float(raw_lat),
+                longitude=float(raw_lon),
+                elevation=ele,
+                time=time,
+            )
+        )
+
+    path = Path(filepath)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(gpx.to_xml(), encoding="utf-8")
 
 
 def load_gpx_dir(

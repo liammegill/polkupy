@@ -157,8 +157,8 @@ class TestRideReprHtml:
 class TestRideFromGpx:
     """from_gpx(): loads a single GPX file as a Ride."""
 
-    def test_reads_points(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_reads_points(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>'
             '<trkpt lat="52.1" lon="13.1"><time>2026-01-01T00:00:10Z</time></trkpt>',
@@ -167,37 +167,37 @@ class TestRideFromGpx:
         assert len(ride) == 2
         assert ride.data.loc[1, "lat"] == 52.1
 
-    def test_ride_id_defaults_to_filename_stem(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_ride_id_defaults_to_filename_stem(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "my_ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
         assert Ride.from_gpx(path).ride_id == "my_ride"
 
     def test_ride_id_defaults_to_bike_and_stem_when_bike_given(
-        self, tmp_path, write_gpx
+        self, tmp_path, raw_gpx_factory
     ):
-        path = write_gpx(
+        path = raw_gpx_factory(
             tmp_path / "my_ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
         ride = Ride.from_gpx(path, bike_id="ktm")
         assert ride.ride_id == "ktm/my_ride"
 
-    def test_explicit_ride_id_overrides_default(self, tmp_path, write_gpx):
-        path = write_gpx(
+    def test_explicit_ride_id_overrides_default(self, tmp_path, raw_gpx_factory):
+        path = raw_gpx_factory(
             tmp_path / "my_ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
         ride = Ride.from_gpx(path, ride_id="custom")
         assert ride.ride_id == "custom"
 
-    def test_bike_id_is_set_as_attribute_and_column(self, tmp_path, write_gpx):
+    def test_bike_id_is_set_as_attribute_and_column(self, tmp_path, raw_gpx_factory):
         """Unlike the bare constructor, from_gpx writes bike_id onto the DataFrame too.
 
         This means it survives later transforms.
         """
-        path = write_gpx(
+        path = raw_gpx_factory(
             tmp_path / "my_ride.gpx",
             '<trkpt lat="52.0" lon="13.0"><time>2026-01-01T00:00:00Z</time></trkpt>',
         )
