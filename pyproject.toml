@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polkupy"
-version = "0.1.0"
+version = "0.1.1"
 description = "A python package to analyse and visualise personal cycling activities"
 readme = "README.md"
 requires-python = ">=3.11"
