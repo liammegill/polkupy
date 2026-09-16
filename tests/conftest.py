@@ -22,11 +22,13 @@ GPX_HEADER = (
 
 
 @pytest.fixture
-def write_gpx():
+def raw_gpx_factory():
     """Factory for writing a minimal one-track, one-segment GPX file.
 
-    The file is written at an arbitrary path (parent directories are
-    created as needed).
+    Takes a raw ``<trkpt>`` XML fragment, so callers have full control over
+    otherwise-invalid or edge-case content (a missing ``lat``, an
+    out-of-range elevation, ...). The file is written at an arbitrary path
+    (parent directories are created as needed).
     """
 
     def _write(path: Path, trkpts: str) -> str:
