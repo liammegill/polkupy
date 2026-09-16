@@ -1,0 +1,30 @@
+# Configures GitHub's auto-generated release notes to follow the Keep a
+# Changelog categories used by this repo's labels
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - wontfix
+      - question
+  categories:
+    - title: Added
+      labels:
+        - added
+    - title: Changed
+      labels:
+        - changed
+    - title: Deprecated
+      labels:
+        - deprecated
+    - title: Removed
+      labels:
+        - removed
+    - title: Fixed
+      labels:
+        - fixed
+    - title: Security
+      labels:
+        - security
+    - title: Other Changes
+      labels:
+        - "*"
