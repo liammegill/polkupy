@@ -18,4 +18,5 @@ View the source code on `GitHub <https://github.com/liammegill/polkupy>`__.
 
    installation
    quickstart
+   examples
    api
