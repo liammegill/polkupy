@@ -38,7 +38,9 @@ nb = [
 ]
 docs = [
     "sphinx",
-    "furo"
+    "furo",
+    "ipykernel",
+    "jupyter-sphinx",
 ]
 
 [tool.setuptools]
@@ -69,6 +71,7 @@ python = "3.13.*"
 [tool.pixi.environments]
 default = { features = [], solve-group = "default" }
 dev = { features = ["dev", "nb", "docs"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
 
 # default environment
 [tool.pixi.pypi-dependencies]
@@ -99,7 +102,11 @@ polkupy = { path = ".", editable = true, extras = ["nb"] }
 polkupy = { path = ".", editable = true, extras = ["docs"] }
 
 [tool.pixi.feature.docs.tasks]
-docs-build = "sphinx-build -b html docs docs/_build/html"
+# registers a kernel scoped to *this* pixi env
+docs-kernel = "python -m ipykernel install --sys-prefix --name polkupy-docs --display-name 'polkupy (docs)'"
+docs-build = { cmd = "sphinx-build -b html docs docs/_build/html", depends-on = [
+    "docs-kernel",
+] }
 docs-clean = "rm -rf docs/_build"
 
 

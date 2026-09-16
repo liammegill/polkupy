@@ -35,3 +35,9 @@ GPX I/O
 
 .. automodule:: polkupy.io.gpx
    :members:
+
+Synthetic Data
+--------------
+
+.. automodule:: polkupy.synthetic
+   :members:

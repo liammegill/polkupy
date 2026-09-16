@@ -9,6 +9,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "jupyter_sphinx",
 ]
 
 intersphinx_mapping = {
@@ -19,6 +20,10 @@ intersphinx_mapping = {
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
+
+# execute jupyter-execute:: cells with a kernel scoped to this project's own
+# pixi environment (registered by the docs-kernel pixi task)
+jupyter_execute_default_kernel = "polkupy-docs"
 
 exclude_patterns = ["_build"]
 

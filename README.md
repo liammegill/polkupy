@@ -1,5 +1,6 @@
 # polkupy
 
+[![pypi](https://img.shields.io/pypi/v/polkupy?color=orange&label=pypi&logo=python&logoColor=white)](https://pypi.org/project/polkupy/)
 [![Latest tag](https://img.shields.io/github/v/tag/liammegill/polkupy)](https://github.com/liammegill/polkupy/tags)
 [![Commits since last release](https://img.shields.io/github/commits-since/liammegill/polkupy/latest.svg)](https://github.com/liammegill/polkupy/commits/main)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -7,12 +8,18 @@
 [![License](https://img.shields.io/github/license/liammegill/polkupy)](https://github.com/liammegill/polkupy/blob/main/LICENSE)
 
 Python package to analyse and visualise personal cycling activities. Loads
-GPX tracks into chainable `pandas`-backed objects, with built-in filtering,
-geography helpers, and rich Jupyter display.
+GPX and FIT tracks into chainable `pandas`-backed objects, with built-in
+filtering, geography helpers, and rich Jupyter display.
 
 ## Installation
 
-Install with `pixi` using:
+For users, install from PyPI using:
+
+```bash
+pip install polkupy
+```
+
+To contribute to development, install with `pixi` using:
 
 ```bash
 pixi install --all
