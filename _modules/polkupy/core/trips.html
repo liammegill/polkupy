@@ -1,0 +1,648 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>polkupy.core.trips - polkupy documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">polkupy  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">polkupy  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for polkupy.core.trips</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Provides the :class:`Trips` class.</span>
+
+<span class="sd">This class is a collection of rides, backed by one concatenated</span>
+<span class="sd">:class:`pandas.DataFrame` grouped by ``ride_id``.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># import polkupy functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..algorithms.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">filter_rides_in_bbox</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_time_of_day</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..io.fit</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_fit_dir</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..io.gpx</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_gpx_dir</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.ride</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ride</span>
+
+
+<div class="viewcode-block" id="Trips">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Trips</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A collection of rides.</span>
+
+<span class="sd">    The class is backed by one :class:`pandas.DataFrame` and grouped by</span>
+<span class="sd">    ``ride_id``.</span>
+
+<span class="sd">    Iterating yields :class:`Ride` objects; methods that filter or</span>
+<span class="sd">    transform the collection return a new :class:`Trips` so they can be</span>
+<span class="sd">    chained.</span>
+<span class="sd">    """</span>
+
+    <span class="n">REQUIRED_COLUMNS</span> <span class="o">=</span> <span class="n">Ride</span><span class="o">.</span><span class="n">REQUIRED_COLUMNS</span> <span class="o">|</span> <span class="p">{</span><span class="s2">"ride_id"</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Wrap ``data`` as a :class:`Trips` collection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pandas.DataFrame): Points for one or more rides. Must</span>
+<span class="sd">                contain the columns in :attr:`REQUIRED_COLUMNS` (the same as</span>
+<span class="sd">                for :class:`Ride`), plus ``ride_id`` identifying which ride</span>
+<span class="sd">                each row belongs to.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If ``data`` is missing any of :attr:`REQUIRED_COLUMNS`.</span>
+<span class="sd">        """</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">REQUIRED_COLUMNS</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"Trips data is missing required column(s): "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="c1"># -- data entry -----------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Trips.from_gpx">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.from_gpx">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_gpx</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"data"</span><span class="p">,</span>
+        <span class="n">bikes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">extensions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Load every GPX ride from a directory of per-bike subfolders.</span>
+
+<span class="sd">        This will need to be updated to become more flexible in the future.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data_dir (str): Directory containing one subfolder per bike.</span>
+<span class="sd">            bikes (list[str], optional): Subset of bike subfolder names to</span>
+<span class="sd">                load. Defaults to every subfolder found in ``data_dir``.</span>
+<span class="sd">            extensions (list[str], optional): Extra GPX extension fields to</span>
+<span class="sd">                read, passed through to</span>
+<span class="sd">                :func:`~polkupy.io.gpx.load_gpx_dir`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: The rides loaded from ``data_dir``.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">load_gpx_dir</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">bikes</span><span class="o">=</span><span class="n">bikes</span><span class="p">,</span> <span class="n">extensions</span><span class="o">=</span><span class="n">extensions</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Trips.from_fit">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.from_fit">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_fit</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"data"</span><span class="p">,</span>
+        <span class="n">bikes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">extensions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Load every FIT ride from a directory of per-bike subfolders.</span>
+
+<span class="sd">        This will need to be updated to become more flexible in the future.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data_dir (str): Directory containing one subfolder per bike.</span>
+<span class="sd">            bikes (list[str], optional): Subset of bike subfolder names to</span>
+<span class="sd">                load. Defaults to every subfolder found in ``data_dir``.</span>
+<span class="sd">            extensions (list[str], optional): Extra FIT fields to read,</span>
+<span class="sd">                passed through to</span>
+<span class="sd">                :func:`~polkupy.io.fit.load_fit_dir`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: The rides loaded from ``data_dir``.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">load_fit_dir</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">bikes</span><span class="o">=</span><span class="n">bikes</span><span class="p">,</span> <span class="n">extensions</span><span class="o">=</span><span class="n">extensions</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Trips.from_rides">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.from_rides">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_rides</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">rides</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Ride</span> <span class="o">|</span> <span class="n">Trips</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Concatenate several :class:`Ride`/:class:`Trips` into one collection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rides (Iterable[Ride | Trips]): :class:`Ride`s and/or</span>
+<span class="sd">                :class:`Trips` collections to concatenate, e.g. from</span>
+<span class="sd">                ``ride1 + ride2``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: A new collection holding every ride.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rides</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+
+
+    <span class="c1"># -- special methods ------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Trips.__add__">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.__add__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="n">Ride</span> <span class="o">|</span> <span class="n">Trips</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Concatenate this collection with another ride or collection.</span>
+
+<span class="sd">        Accepts ``0`` as well as :class:`Ride`/:class:`Trips` so that</span>
+<span class="sd">        :func:`sum` works, e.g. ``sum(list_of_rides)``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Literal[0] | Ride | Trips): Another ride or collection to</span>
+<span class="sd">                concatenate onto this one, or ``0``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: ``self`` if ``other`` is ``0``. Otherwise, a new</span>
+<span class="sd">            :class:`Trips` collection holding every point from both</span>
+<span class="sd">            ``self`` and ``other``.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">Trips</span><span class="o">.</span><span class="n">from_rides</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Trips.__radd__">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.__radd__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="n">Ride</span> <span class="o">|</span> <span class="n">Trips</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Reflected concatenation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other (Literal[0] | Ride | Trips): Another ride or collection to</span>
+<span class="sd">                concatenate onto this one, or ``0``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: See :meth:`__add__`.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">other</span></div>
+
+
+<div class="viewcode-block" id="Trips.__len__">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.__len__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The number of distinct rides in this collection.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The number of unique ``ride_id`` values in :attr:`data`.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"ride_id"</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Trips.__iter__">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.__iter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Ride</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Iterate over the rides in this collection.</span>
+
+<span class="sd">        Yields:</span>
+<span class="sd">            Ride: One :class:`Ride` per distinct ``ride_id`` in :attr:`data`.</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">ride_id</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"ride_id"</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">Ride</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ride_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ride_id</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Trips.__getitem__">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ride_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Ride</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Look up a single ride by id.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ride_id (str): The ``ride_id`` to look up.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Ride: The matching ride.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If no row in :attr:`data` has this `ride_id`.</span>
+<span class="sd">        """</span>
+        <span class="n">subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"ride_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">ride_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">subset</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">ride_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Ride</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">ride_id</span><span class="o">=</span><span class="n">ride_id</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return a concise ``Trips(N rides, M points)`` summary."""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Trips(</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> rides, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> points)"</span>
+
+    <span class="c1"># -- jupyter viewing ------------------------------------------------------</span>
+
+    <span class="n">_REPR_MAX_ROWS</span> <span class="o">=</span> <span class="mi">15</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render collection metadata plus a per-ride table.</span>
+
+<span class="sd">        This allows a :class:`Trips` to display as a summary card just by being</span>
+<span class="sd">        the last line of a Jupyter cell.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">"&lt;div&gt;&lt;h3&gt;Trips&lt;/h3&gt;"</span>
+            <span class="sa">f</span><span class="s2">"&lt;ul&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_repr_bullets</span><span class="p">()</span><span class="si">}</span><span class="s2">&lt;/ul&gt;"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_repr_ride_table</span><span class="p">()</span><span class="si">}</span><span class="s2">&lt;/div&gt;"</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_bullets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The ``&lt;li&gt;`` summary bullets (ride/bike counts, start/end)."""</span>
+        <span class="n">has_bike_id</span> <span class="o">=</span> <span class="s2">"bike_id"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"&lt;b&gt;rides&lt;/b&gt;: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">has_bike_id</span><span class="p">:</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"&lt;b&gt;bikes&lt;/b&gt;: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">'bike_id'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">items</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">"&lt;b&gt;start&lt;/b&gt;: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"&lt;b&gt;end&lt;/b&gt;: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"&lt;li&gt;</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&lt;/li&gt;"</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_ride_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The per-ride ``&lt;table&gt;`` (ride ID, bike ID, point count).</span>
+
+<span class="sd">        The table is capped at :attr:`_REPR_MAX_ROWS` rides with a "... and N</span>
+<span class="sd">        more" footer.</span>
+<span class="sd">        """</span>
+        <span class="n">has_bike_id</span> <span class="o">=</span> <span class="s2">"bike_id"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"ride_id"</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">bike_ids</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"ride_id"</span><span class="p">)[</span><span class="s2">"bike_id"</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="k">if</span> <span class="n">has_bike_id</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="n">ride_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_repr_ride_row</span><span class="p">(</span><span class="n">ride_id</span><span class="p">,</span> <span class="n">counts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ride_id</span><span class="p">],</span> <span class="n">bike_ids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ride_id</span> <span class="ow">in</span> <span class="n">ride_ids</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_REPR_MAX_ROWS</span><span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="n">footer</span> <span class="o">=</span> <span class="s2">""</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ride_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_REPR_MAX_ROWS</span><span class="p">:</span>
+            <span class="n">remaining</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ride_ids</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_REPR_MAX_ROWS</span>
+            <span class="n">footer</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">'&lt;p style="margin-top: 0.5em;"&gt;'</span>
+                <span class="sa">f</span><span class="s2">"&lt;em&gt;... and </span><span class="si">{</span><span class="n">remaining</span><span class="si">}</span><span class="s2"> more rides&lt;/em&gt;&lt;/p&gt;"</span>
+            <span class="p">)</span>
+
+        <span class="n">cell_style</span> <span class="o">=</span> <span class="s1">'style="text-align: left; padding: 2px 1em 2px 0;"'</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s1">'&lt;table style="margin-top: 0.5em; border-collapse: collapse;"&gt;'</span>
+            <span class="sa">f</span><span class="s2">"&lt;thead&gt;&lt;tr&gt;&lt;th </span><span class="si">{</span><span class="n">cell_style</span><span class="si">}</span><span class="s2">&gt;ride ID&lt;/th&gt;&lt;th </span><span class="si">{</span><span class="n">cell_style</span><span class="si">}</span><span class="s2">&gt;bike ID&lt;/th&gt;"</span>
+            <span class="sa">f</span><span class="s1">'&lt;th style="text-align: left; padding: 2px 0;"&gt;count&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;'</span>
+            <span class="sa">f</span><span class="s2">"&lt;tbody&gt;</span><span class="si">{</span><span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/tbody&gt;&lt;/table&gt;</span><span class="si">{</span><span class="n">footer</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_ride_row</span><span class="p">(</span><span class="n">ride_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bike_ids</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""One ``&lt;tr&gt;`` of the per-ride table."""</span>
+        <span class="n">bike_id</span> <span class="o">=</span> <span class="n">bike_ids</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ride_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">bike_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">bike_id</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">bike_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">bike_id</span><span class="p">)</span> <span class="k">else</span> <span class="n">bike_id</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;tr&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">ride_id</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">bike_id</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;"</span>
+
+    <span class="c1"># -- filtering (return a new Trips) ---------------------------------------</span>
+
+<div class="viewcode-block" id="Trips.filter">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Ride</span><span class="p">],</span> <span class="nb">bool</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Keep only rides for which `predicate(ride)` is True.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            predicate (Callable[[Ride], bool]): Called once per ride (via</span>
+<span class="sd">                :meth:`__iter__`).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: A new collection holding only the matching rides.</span>
+<span class="sd">        """</span>
+        <span class="n">keep_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ride</span><span class="o">.</span><span class="n">ride_id</span> <span class="k">for</span> <span class="n">ride</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">predicate</span><span class="p">(</span><span class="n">ride</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">Trips</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"ride_id"</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">keep_ids</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="Trips.in_bbox">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.in_bbox">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">in_bbox</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lat_min</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lat_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon_min</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon_max</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Keep rides that pass through a geographic bounding box.</span>
+
+<span class="sd">        See :func:`~polkupy.algorithms.filters.filter_rides_in_bbox`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lat_min (float): minimum latitude of the box, in degrees.</span>
+<span class="sd">            lat_max (float): maximum latitude of the box, in degrees.</span>
+<span class="sd">            lon_min (float): minimum longitude of the box, in degrees.</span>
+<span class="sd">            lon_max (float): maximum longitude of the box, in degrees.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: Rides that have at least one point inside the box, kept</span>
+<span class="sd">            in full.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">Trips</span><span class="p">(</span>
+            <span class="n">filter_rides_in_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">lat_min</span><span class="p">,</span> <span class="n">lat_max</span><span class="p">,</span> <span class="n">lon_min</span><span class="p">,</span> <span class="n">lon_max</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Trips.between">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.between">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">between</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">end</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">radius_km</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Keep rides that start near ``start`` (lat, lon) and end near ``end``.</span>
+
+<span class="sd">        Useful e.g. for locating groups of similar rides, e.g. a commutes. See</span>
+<span class="sd">        :meth:`Ride.starts_near`/:meth:`Ride.ends_near` for how "near" is</span>
+<span class="sd">        checked.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start (tuple[float, float]): target ``(lat, lon)`` the ride</span>
+<span class="sd">                must start near.</span>
+<span class="sd">            end (tuple[float, float]): target ``(lat, lon)`` the ride</span>
+<span class="sd">                must end near.</span>
+<span class="sd">            radius_km (float): how close counts as "near", in km.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: Rides that both start near ``start`` and end near ``end``.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">ride</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">ride</span><span class="o">.</span><span class="n">starts_near</span><span class="p">(</span><span class="o">*</span><span class="n">start</span><span class="p">,</span> <span class="n">radius_km</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ride</span><span class="o">.</span><span class="n">ends_near</span><span class="p">(</span><span class="o">*</span><span class="n">end</span><span class="p">,</span> <span class="n">radius_km</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># -- transforms (return a new Trips) --------------------------------------</span>
+
+<div class="viewcode-block" id="Trips.localised">
+<a class="viewcode-back" href="../../../api.html#polkupy.Trips.localised">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">localised</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tz</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"Europe/Berlin"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trips</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Align every ride to a shared 24h clock, ignoring the calendar date.</span>
+
+<span class="sd">        See :func:`~polkupy.clock.add_time_of_day`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tz (str): IANA timezone name used to resolve local time of day.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Trips: A new collection with ``time`` converted to ``tz``, and</span>
+<span class="sd">            ``ride_start_s``/``virtual_s`` columns added.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">Trips</span><span class="p">(</span><span class="n">add_time_of_day</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">tz</span><span class="p">))</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, Liam Megill
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    </body>
+</html>
